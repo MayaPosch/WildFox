@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/wildfox">
+        <file alias="icon">icon.png</file>
+    </qresource>
+</RCC>
