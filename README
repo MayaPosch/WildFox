@@ -1,0 +1,7 @@
+WildFox
+
+Light-weight, full-featured internet browser.
+
+See http://www.mayaposch.com/wildfox.php for details.
+
+Compile instructions: requires Qt 4.8+ libraries. No special platform requirements beyond the Qt ones.
