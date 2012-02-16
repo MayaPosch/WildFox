@@ -93,8 +93,8 @@ MainWindow::MainWindow(QWidget *parent) :
     else {
         QString manifestString = manifest.readAll();
         bool ok;
-        QList<QString, QVariant> result;
-        result = Json::parse(manifestString, ok).toMap();
+        QMap<QString, QVariant> result;
+        result = QtJson::Json::parse(manifestString, ok).toMap();
         if (!ok) {
             qDebug() << "Parsing of manifest failed.";
         }
