@@ -18,7 +18,7 @@
 #include <QDir>
 #include <QtNetwork/QNetworkReply>
 #include <QtNetwork/QNetworkRequest>
-#include <qtnetwork/QNetworkCookieJar>
+#include <QtNetwork/QNetworkCookieJar>
 #include <QSettings>
 
 #include "wfwebview.h"
