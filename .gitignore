@@ -31,3 +31,16 @@ _ReSharper*/
 *.user
 old/
 layouts/
+
+#Ignore files created by qmake on *nix
+Makefile
+
+#Ignore files created by make on *nix
+WildFox-Mimic
+*.o
+moc_*.cpp
+qrc_images.cpp
+ui_cookiemanagedialog.h
+ui_mainwindow.h
+ui_optionsdialog.h
+
