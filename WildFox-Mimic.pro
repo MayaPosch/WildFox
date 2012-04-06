@@ -6,7 +6,7 @@
 
 QT       += core gui webkit network sql
 
-TARGET = WildFox-Mimic
+TARGET = WildFox
 TEMPLATE = app
 
 CONFIG += uitools
@@ -19,7 +19,10 @@ SOURCES += main.cpp\
     cookiejar.cpp \
     tldutil.cpp \
     cookiemanagedialog.cpp \
-    json.cpp
+    json.cpp \
+    bookmarks.cpp \
+    chrome/chromejsinterface.cpp \
+    chrome/chromebookmarks.cpp
 
 HEADERS  += mainwindow.h \
     wfwebview.h \
@@ -29,7 +32,11 @@ HEADERS  += mainwindow.h \
     tldutil.h \
     qurltlds_p.h \
     cookiemanagedialog.h \
-    json.h
+    json.h \
+    types.h \
+    bookmarks.h \
+    chrome/chromejsinterface.h \
+    chrome/chromebookmarks.h
 
 FORMS    += mainwindow.ui \
     optionsdialog.ui \

@@ -20,6 +20,8 @@
 #include <QtUiTools/QUiLoader>
 #include <QDesktopServices>
 #include <QNetworkProxyFactory>
+#include <QWebFrame>
+#include <QWebElement>
 #include <QList>
 
 #include "iofile.h"
@@ -38,6 +40,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(actionNewTab, SIGNAL(triggered()), this, SLOT(newTab()));
     connect(actionClose_Tab, SIGNAL(triggered()), this, SLOT(closeTab()));
     connect(actionOptions, SIGNAL(triggered()), this, SLOT(options()));
+    connect(actionBookmarksSidebar, SIGNAL(triggered()), this, SLOT(sidebarBookmarks()));
     
     // other interface connections
     connect(backButton, SIGNAL(pressed()), this, SLOT(back()));
@@ -50,6 +53,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(tabWidget, SIGNAL(currentChanged(int)), this, SLOT(changeTab(int)));
     tabWidget->addAction(actionClose_Tab);
     connect(tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
+    connect(bookmarksTree, SIGNAL(itemActivated(QTreeWidgetItem*,int)), this, SLOT(loadBookmark(QTreeWidgetItem*,int)));
+    
+    connect(actionBookmark_this_page, SIGNAL(triggered()), this, SLOT(bookmarkAdd()));
     
     addAction(actionGo_to_address_bar);
     connect(actionGo_to_address_bar, SIGNAL(triggered()), this, SLOT(gotoAddressBar()));
@@ -61,9 +67,9 @@ MainWindow::MainWindow(QWidget *parent) :
     QList<QNetworkProxy> proxies = QNetworkProxyFactory::systemProxyForQuery();
     QNetworkProxy::setApplicationProxy(proxies[0]);
     wv = 0;
-    icondb = "./";
-    //cookies = new QNetworkCookieJar();
+    //icondb = "./";
     cookiejar = new CookieJar();
+    bookmarks = new Bookmarks(this);
     nam = new QNetworkAccessManager(this);
     nam->setCookieJar(cookiejar);
     stopbutton = false;
@@ -86,7 +92,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // and create a WebPage object for background scripts and load the extension
     // into it. Register URL filters.
     // TESTING: XMarks extension is at ./extensions/xmarks/manifest.json
-    QFile manifest("extensions/xmarks/manifest.json");
+    manifest.setFileName(QString("extensions/xmarks/manifest.json"));
     if (!manifest.exists() || !manifest.open(QIODevice::ReadOnly)) {
         qDebug() << "Failed to open the manifest file.";
     }
@@ -101,12 +107,40 @@ MainWindow::MainWindow(QWidget *parent) :
         
         if (result.contains("background_page")) {
             // load this extension into a webpage object.
+            QWebPage* page = new QWebPage;
+            page->mainFrame()->load(manifest.fileName());
+            extPages.append(page);
         }
         
         if (result.contains("content_scripts")) {
             // add the content scripts in this list to the specified filters.
+            QMap<QString, QVariant> scripts = result["content_scripts"].toMap();
+            if (scripts.contains("matches")) {
+                QList<QVariant> matches = scripts["matches"].toList();
+                QList<QVariant> js = scripts["js"].toList();
+                Filter filter;
+                filter.extId = extPages.size() - 1;
+                for (int i = 0; i < js.size(); ++i) {
+                    filter.scripts.append(QString("extensions/xmarks/") + js[i].toString());
+                }
+                
+                for (int i = 0; i < matches.size(); ++i) {
+                    QStringList urlbit = matches[i].toString().split("://");
+                    if (urlbit.size() < 2) { continue; }
+                    filter.scheme = urlbit[0];
+                    filter.segments = urlbit[1].split(".");
+                    if (filter.scripts.size() < 1 || filter.segments.size() < 1) {
+                        break; // empty/useless filter, skip
+                    }
+                    
+                    extFilters.append(filter);
+                }
+            }
         }
     }
+    
+    // pass extension filter data to the network access manager
+    //nam->setFilters(extFilters);
     
     // open empty tab
     newTab();
@@ -156,10 +190,27 @@ void MainWindow::about() {
 }
 
 
+// --- SIDE BAR BOOKMARKS ---
+// Hides/shows the bookmarks sidebar.
+void MainWindow::sidebarBookmarks() {
+    //qDebug() << "Setting sidebar visibility...";
+    if (bookmarksTree->isVisible()) { bookmarksTree->hide(); }
+    else { bookmarksTree->setVisible(true); }
+}
+
+
 // --- GO TO URL ---
 // Go to the URL in the addressbar in the currently open tab. If no tab is open,
 // open a new tab.
 void MainWindow::gotoURL() {
+    QString url = addressBar->text();
+    gotoURL(url);
+}
+
+
+// --- GO TO URL ---
+// Go to the url provided in the string.
+void MainWindow::gotoURL(QString url) {
     if (tabWidget->count() < 1) { 
         newTab(); // open new tab before proceding
     }
@@ -171,7 +222,6 @@ void MainWindow::gotoURL() {
     wv = (WFWebView*) tabWidget->currentWidget();
     if (!wv) { qDebug("wv is null"); return; }
     
-    QString url = addressBar->text();
     url.toLower();
     qDebug() << "Lower-case URL: " << url;
     
@@ -193,7 +243,7 @@ void MainWindow::gotoURL() {
 
 // --- DIAGNOSE LOAD ---
 // Verify that the page loaded successfully, else present error message.
-// If successful, set other data parts.
+// If successful, set other data parts and handle filters.
 void MainWindow::diagnoseLoad(bool ok) {
     setReloadButton();
     if (!ok) {
@@ -210,6 +260,36 @@ void MainWindow::diagnoseLoad(bool ok) {
         }
         
         setWindowTitle(title + " - WildFox");
+        
+        // check the page URL against the filters
+        if (extFilters.size() < 1) { return; }
+        
+        QWebPage* page = (QWebPage*) sender();
+        if (page == 0) { return; }        
+        QWebFrame* frame = page->mainFrame();
+        if (frame == 0) { return; }
+        QString url = frame->url().path();
+        QStringList urlbit = url.split("://");
+        QDir extension;
+        extension.setPath(manifest.fileName());
+        if (urlbit.size() > 1) {
+            QString scheme = urlbit[0];
+            QStringList bits = urlbit[1].split(".");
+            for (int i = 0; i < extFilters.size(); ++i) {
+                if (extFilters[i].scheme != scheme) { continue; }
+                for (int j = 0; extFilters[i].segments.size(); ++j) {
+                    if (extFilters[i].segments[j] != bits[j] && extFilters[i].segments[j] != "*") {
+                        continue;
+                    }
+                }
+                
+                // matched filter, inject associated scripts into the content.
+                QWebElement root = frame->documentElement();
+                QWebElement head = root.findFirst("head");
+                head.appendOutside("<script type=\"text/javascript\" src=\"" +
+                                   extension.absolutePath() + "\" />");
+            }
+        }
     }
 }
 
@@ -260,7 +340,8 @@ void MainWindow::newTab() {
     qDebug("Loading new tab...");
     QMessageBox msgBox;
     wv = new WFWebView();
-    connect(wv, SIGNAL(loadFinished(bool)), this, SLOT(diagnoseLoad(bool)));
+    //connect(wv, SIGNAL(loadFinished(bool)), this, SLOT(diagnoseLoad(bool)));
+    connect(wv->page()->mainFrame(), SIGNAL(loadFinished(bool)), this, SLOT(diagnoseLoad(bool)));
     connect(wv, SIGNAL(titleChanged(QString)), 
             this, SLOT(tabTitleChanged(QString)));
     if (wv == 0) {
@@ -331,6 +412,13 @@ void MainWindow::closeTab(int index) {
 }
 
 
+// --- NEW PAGE ---
+// Called when a new page is created, inside a frameset or iframe.
+void MainWindow::newPage(QWebFrame* frame) {
+    connect(frame, SIGNAL(loadFinished(bool)), this, SLOT(diagnoseLoad(bool)));
+}
+
+
 // --- BACK ---
 // Go back one page in the current tab.
 void MainWindow::back() {
@@ -373,6 +461,37 @@ void MainWindow::stop() {
 void MainWindow::loadInteraction() {
     if (stopbutton) { stop(); }
     else { reload(); }
+}
+
+
+// --- BOOKMARK ADD ---
+// Add the currently displayed page to the bookmarks.
+// TODO: Show dialogue to select the folder to add the bookmarks to.
+void MainWindow::bookmarkAdd() {
+    if (wv == 0) { return; }
+    
+    QVariantMap bookmark;
+    bookmark.insert("title", wv->title());
+    bookmark.insert("url", wv->url().toString());
+    bookmarks->create(bookmark);
+}
+
+
+// --- LOAD BOOKMARK ---
+// Loads a selected bookmark into the currently active window.
+void MainWindow::loadBookmark() {
+    QAction* action = (QAction*) sender();
+    QString url = action->data().toString();
+    gotoURL(url);
+}
+
+
+// --- LOAD BOOKMARK ---
+// Loads a bookmark selected in the sidebar in the currently active window.
+void MainWindow::loadBookmark(QTreeWidgetItem *item, int column) {
+    QList<QVariant> data = item->data(0, Qt::UserRole).toList();
+    QString url = data[0].toString();
+    gotoURL(url);
 }
 
 

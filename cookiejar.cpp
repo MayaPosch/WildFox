@@ -35,7 +35,7 @@ CookieJar::CookieJar() {
     // a default instance if there are any issues.
     storagePath = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
     storagePath = QDir::toNativeSeparators(storagePath + "/");
-    db = QSqlDatabase::addDatabase("QSQLITE");
+    db = QSqlDatabase::addDatabase("QSQLITE", "cookiesdb");
     db.setDatabaseName(storagePath + "cookies.sqlite");
     if (!db.open()) {
         qDebug("Failed to open the cookies database.");
@@ -43,7 +43,8 @@ CookieJar::CookieJar() {
         return;
     }
     
-    QSqlQuery query("SELECT name FROM sqlite_master WHERE type='table' AND name='moz_cookies'");
+    QSqlQuery query(db);
+    query.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='moz_cookies'");
     if (!query.next()) {
         // table doesn't exist, create it.
         query.finish();
@@ -53,10 +54,14 @@ CookieJar::CookieJar() {
                    QString("creationTime INTEGER, isSecure INTEGER, isHttpOnly INTEGER, ") +
                    QString("CONSTRAINT moz_uniqueid UNIQUE (name, host, path))"));
         if (!err) {
-            qDebug("Creating table failed.");
+            qDebug("Creating cookies table failed.");
             qDebug() << "Cause: " << db.lastError().text();
             return;
         }
+    }
+    
+    if (!db.isOpen()) {
+        qDebug() << "Cookies db is not open!";
     }
 }
 
@@ -74,7 +79,7 @@ QList<QNetworkCookie> CookieJar::cookiesForUrl(const QUrl &url) const {
     // Determine the top domain.    
     QString baseDomain = getPublicDomain(url.host());
     QString pathAndFileName = url.path();
-    QString defaultPath = pathAndFileName.left(pathAndFileName.lastIndexOf(QLatin1Char('/'))+1);
+    QString defaultPath = pathAndFileName.left(pathAndFileName.lastIndexOf(QLatin1Char('/')) + 1);
     if (defaultPath.isEmpty())
         defaultPath = QLatin1Char('/');
     
@@ -100,16 +105,16 @@ QList<QNetworkCookie> CookieJar::cookiesForUrl(const QUrl &url) const {
             return result; // nothing found, return empty list
         }
         
-        for (int i = 0; i < temp.size(); ++i) {
+        /*for (int i = 0; i < temp.size(); ++i) {
             if (temp[i].isSecure() != isEncrypted) {
                 // Skip this cookie
                 //qDebug() << "Skipping due to security mismatch.";
                 continue;
             }
-            else if (temp[i].path() != defaultPath) { continue; }
+            //else if (temp[i].path() != defaultPath) { continue; }
             else { result.append(temp[i]); }
             //qDebug() << "Added cookie to output.";
-        }
+        }*/
         
         // TODO: sort these cookies and verify on path
         return result;
@@ -118,12 +123,22 @@ QList<QNetworkCookie> CookieJar::cookiesForUrl(const QUrl &url) const {
     // in the buffer, copy it to output list and return
     QList<QNetworkCookie> temp = cookiebuffer.values(baseDomain);
     //qDebug() << "Cookies found in buffer. Copying " << temp.size() << " cookies";
+    //qDebug() << "URL host: " << url.host();
+    QString urlHost = url.host(); // FIXME: do proper domain verification
+    //if (urlHost.startsWith(".")) { urlHost.remove(0, 1); }
     for (int i = 0; i < temp.size(); ++i) {
         // verify the cookies retrieved
-        if (temp[i].isSecure() == isEncrypted) { // && temp[i].path() == defaultPath) {
+        QString cookieDomain = temp[i].domain();
+        if (cookieDomain.startsWith(".")) { cookieDomain.remove(0, 1); }
+        //qDebug() << cookieDomain << ", " << urlHost << ", secure: " << temp[i].isSecure();
+        if (urlHost.endsWith(cookieDomain, Qt::CaseInsensitive) 
+                && temp[i].isSecure() <= isEncrypted) { 
+                //&& temp[i].path() == defaultPath) {
             // add this cookie
             result.append(temp[i]);
-            //qDebug() << "Sending cookie for: " << temp[i].domain();
+            //qDebug() << "Sending cookie for: " << temp[i].domain(); // << ", host: " << url.host();
+            //qDebug() << "Cookie name: " << temp[i].name();
+            //qDebug() << "Cookie domain: " << cookieDomain;
             // TODO: verification & sorting
         }
     }
@@ -149,15 +164,20 @@ bool CookieJar::setCookiesFromUrl(const QList<QNetworkCookie> &cookieList, const
     QDateTime now = QDateTime::currentDateTime();
     QString baseDomain = getPublicDomain(url.host());
     //qDebug() << "Cookie List size: " << cookieList.size();
-    bool skip3rd = settings.value("cookies3rdDisabled", true).toBool();
+    //bool skip3rd = settings.value("cookies3rdDisabled", true).toBool();
+    QSqlQuery query(db);
     for (int i = 0; i < cookieList.size(); ++i) {
         updated = false;
         QNetworkCookie cookie = cookieList[i];
+        //baseDomain = getPublicDomain(cookie.domain());
         // if 3rd-party cookies are disabled in settings, skip this cookie
         // if its domain doesn't match up with that of the current url.
-        if (skip3rd && (baseDomain != getPublicDomain(cookie.domain()))) {
+        //qDebug() << "Skip3rd: " << skip3rd << " | " << baseDomain << ", " << getPublicDomain(cookie.domain());
+        /*if (skip3rd && (baseDomain.compare(getPublicDomain(cookie.domain()), Qt::CaseInsensitive) != 0)) {
+            qDebug() << "Skipping this cookie.";
             continue;
-        }
+        }*/
+        // FIXME: get 3rd-party blocking working...
         
         //qDebug() << "Cookie name: " << cookie.name();
         /*bool isDeletion = !cookie.isSessionCookie() &&
@@ -203,21 +223,17 @@ bool CookieJar::setCookiesFromUrl(const QList<QNetworkCookie> &cookieList, const
         if (cit == cookiebuffer.end()) {
             if (!loadCookies(temp, baseDomain)) {
                 // nothing found, insert all provided cookies
-                //qDebug() << "No cookies found in database for " << baseDomain;
+                qDebug() << "No cookies found in database for " << baseDomain;
             }
             else {
                 cit = cookiebuffer.find(baseDomain);
-                //qDebug() << "Found " << temp.size() << " cookies in database for domain " << baseDomain;
+                qDebug() << "Found " << temp.size() << " cookies in database for domain " << baseDomain;
             }
         }
         
-        //qDebug() << "Size of CookieBuffer: " << cookiebuffer.size();
-        QMultiMap<QString, QNetworkCookie>::iterator it;
-        it = cookiebuffer.end();
-        //qDebug() << "CIT: " << &cit << " | End: " << &it;
         if (cit != cookiebuffer.end()) {
             // we found the base domain in question, next search the cookies in it for a match
-            //qDebug() << "Searching for cookies in cookie buffer...";
+            //qDebug() << "Searching for cookies in cookie buffer matching " << cookie.name() << "...";
             while (cit != cookiebuffer.end() && cit.key() == baseDomain) {
                 QNetworkCookie c = cit.value();
                 //qDebug() << "Cookie name: " << c.name();
@@ -227,14 +243,18 @@ bool CookieJar::setCookiesFromUrl(const QList<QNetworkCookie> &cookieList, const
                     // same cookie, overwrite it.
                     //qDebug() << "Found cookie match: " << c.name();
                     c = cookie;
+                    updated = true;
+                    
+                    if (cookie.isSessionCookie()) {
+                        break; // do not update database
+                    }
                     
                     // update in database too
                     // TODO: update secure and HTTPOnly variables too.
                     if (cookie.isSessionCookie()) { ++cit; continue; }
-                    QSqlQuery query;
-                    query.prepare("UPDATE moz_cookies SET value=:value, host=:host, expiry=" 
+                    query.prepare("UPDATE moz_cookies SET value=:value, expiry=" 
                                   + QString::number(cookie.expirationDate().toTime_t())
-                                  + " WHERE baseDomain=:baseDomain AND path=:path AND name=:name");
+                                  + " WHERE baseDomain=:baseDomain AND host=:host AND path=:path AND name=:name");
                     query.bindValue(":value", cookie.value());
                     query.bindValue(":host", cookie.domain());
                     query.bindValue(":baseDomain", baseDomain);
@@ -244,12 +264,13 @@ bool CookieJar::setCookiesFromUrl(const QList<QNetworkCookie> &cookieList, const
                     if (!err) {
                         qDebug() << "Failed to update database with query: " << query.executedQuery();
                         qDebug() << "Cause: " << query.lastError().text();
+                        qDebug() << "name: " << cookie.name() << ", host: " << cookie.domain() << ", path: " << cookie.path();
                         ++cit;
-                        continue;
+                        break; // continue with next cookie
                     }
                     
+                    query.finish();
                     ++added;
-                    updated = true;
                     break;
                 }
                 
@@ -258,11 +279,11 @@ bool CookieJar::setCookiesFromUrl(const QList<QNetworkCookie> &cookieList, const
         }
         
         if (!updated) {
-            //qDebug() << "No existing cookie, inserting as new.";
+            //qDebug() << "No existing cookie, inserting as new. Name: " << cookie.name();
             cookiebuffer.insert(baseDomain, cookie);
             if (!cookie.isSessionCookie()) {
                 uint tstamp = cookie.expirationDate().toTime_t();
-                QSqlQuery query;
+                QSqlQuery query(db);
                 query.prepare("INSERT INTO moz_cookies (baseDomain, name, value, host, path, expiry, isSecure, isHttpOnly) VALUES (:baseDomain, :name, :value, :host, :path, "
                               + QString::number(tstamp) + ", "
                               + QString(cookie.isSecure()?"1":"0") + ", "
@@ -274,11 +295,13 @@ bool CookieJar::setCookiesFromUrl(const QList<QNetworkCookie> &cookieList, const
                 query.bindValue(":name", cookie.name());
                 bool err = query.exec();
                 if (!err) {
-                    qDebug() << "Failed to update database with query: " << query.executedQuery();
+                    qDebug() << "Failed to insert into database with query: " << query.executedQuery();
                     qDebug() << "Cause: " << query.lastError().text();
+                    qDebug() << "name: " << cookie.name() << ", host: " << cookie.domain() << ", path: " << cookie.path();
                     continue;
                 }
                 
+                query.finish();
                 ++added;
             }
         }
@@ -330,11 +353,13 @@ inline bool CookieJar::isParentDomain(QString domain, QString reference) const {
 // --- LOAD COOKIES ---
 // Load cookies for a top domain into the buffer, if any exist.
 bool CookieJar::loadCookies(QList<QNetworkCookie> &cookies, QString baseDomain) const {
-    QSqlQuery query("SELECT name, value, host, path, expiry, isSecure, isHttpOnly FROM moz_cookies WHERE baseDomain='" + baseDomain + "'");
-    query.exec();
-    if (!query.isActive()) {
+    //qDebug() << "Load cookies...";
+    QSqlQuery query(db);
+    query.prepare("SELECT name, value, host, path, expiry, isSecure, isHttpOnly FROM moz_cookies WHERE baseDomain='" + baseDomain + "'");
+    bool err = query.exec();
+    if (!err) {
         qDebug() << "Failed to fetch cookies from DB: " << query.lastError().text();
-        qDebug() << "Cause: " << query.lastError().text();
+        //qDebug() << "Cause: " << query.lastError().text();
         return false;
     }
     else if (query.next()){
@@ -346,16 +371,21 @@ bool CookieJar::loadCookies(QList<QNetworkCookie> &cookies, QString baseDomain) 
             cookie.setDomain(query.value(2).toString());
             cookie.setPath(query.value(3).toString());
             cookie.setName(query.value(0).toByteArray());
+            //qDebug() << "Cookie fetched: " << cookie.name();
             dt.setTime_t((uint) query.value(4).toULongLong());
             if (dt < now) { 
+                //qDebug() << cookie.name() << ": dt: " << dt.toString() << " | now: " << now.toString();
+                //qDebug() << "UNIX: " << query.value(4).toInt() << " | " << now.toTime_t();
                 // TODO: remove this cookie
-                QSqlQuery delquery;
-                delquery.exec("DELETE FROM moz_cookies WHERE baseDomain='" 
-                              + baseDomain + "' AND path='" + cookie.path() 
-                              + "' AND name='" + cookie.name() + "'");
-                if (!delquery.isActive()) {
-                    qDebug() << "Failed to update database with query: " << delquery.lastQuery();
-                    qDebug() << "Cause: " << query.lastError().text();
+                QSqlQuery delquery(db);
+                delquery.prepare("DELETE FROM moz_cookies WHERE baseDomain=:baseDomain AND path=:path AND name=:name");
+                delquery.bindValue(":baseDomain", baseDomain);
+                delquery.bindValue(":path", cookie.path());
+                delquery.bindValue(":name", cookie.name());
+                err = delquery.exec();
+                if (!err) {
+                    qDebug() << "Failed to delete from database with query: " << delquery.lastQuery();
+                    qDebug() << "Cause: " << delquery.lastError().text();
                     continue;
                 }
                 
@@ -374,6 +404,7 @@ bool CookieJar::loadCookies(QList<QNetworkCookie> &cookies, QString baseDomain) 
     }
     else {
         // nothing found, return false;
+        //qDebug() << "No cookies found for " << baseDomain << ".";
         return false;
     }
     

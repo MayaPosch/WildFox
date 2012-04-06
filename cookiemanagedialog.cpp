@@ -16,6 +16,7 @@
 
 #include "cookiemanagedialog.h"
 #include "ui_cookiemanagedialog.h"
+#include "tldutil.h"
 
 #include <QSqlQuery>
 #include <QMessageBox>
@@ -44,8 +45,8 @@ CookieManageDialog::CookieManageDialog(QSqlDatabase* db, QMultiMap<QString, QNet
     this->db = db;
     this->cookiebuffer = buffer;
     
-    QSqlQuery query("SELECT baseDomain, name, value, host, path, expiry, isSecure, isHttpOnly FROM moz_cookies ORDER BY baseDomain");
-    query.exec();
+    QSqlQuery query(*this->db);
+    query.exec("SELECT baseDomain, name, value, host, path, expiry, isSecure, isHttpOnly FROM moz_cookies ORDER BY baseDomain");
     if (!query.isActive()) {
         qDebug() << "Failed to fetch cookies from DB: " << query.lastError().text();
         return;
@@ -129,6 +130,7 @@ void CookieManageDialog::deleteCookie() {
             
             // remove the items from the database and cookiebuffer
             CookieData cookie = cookiedata[cookieID];
+            baseDomain = getPublicDomain(cookie.host);
             QMap<QString, QNetworkCookie>::iterator cit;
             cit = cookiebuffer->find(baseDomain);
             if (cit != cookiebuffer->end()) {
@@ -147,11 +149,13 @@ void CookieManageDialog::deleteCookie() {
             }
             
             // delete in the database
-            QSqlQuery query;
-            query.exec("DELETE FROM moz_cookies WHERE baseDomain='" + baseDomain 
-                       + "' AND path='" + cookie.path + "' AND name='" 
-                       + cookie.name + "'");
-            if (!query.isActive()) {
+            QSqlQuery query(*db);
+            query.prepare("DELETE FROM moz_cookies WHERE baseDomain=:baseDomain AND path=:path AND name=:name ");
+            query.bindValue(":baseDomain", baseDomain);
+            query.bindValue(":path", cookie.path);
+            query.bindValue(":name", cookie.name);
+            bool err = query.exec();
+            if (!err) {
                 qDebug() << "Failed to update database with query: " << query.lastQuery();
                 continue;
             }

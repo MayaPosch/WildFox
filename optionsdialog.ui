@@ -126,6 +126,12 @@
         <height>23</height>
        </rect>
       </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="text">
        <string>Restore to Default</string>
       </property>
@@ -139,6 +145,12 @@
         <height>23</height>
        </rect>
       </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="text">
        <string>Use Bookmark</string>
       </property>
@@ -151,6 +163,12 @@
         <width>101</width>
         <height>23</height>
        </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
       <property name="text">
        <string>Use Current Pages</string>
@@ -178,6 +196,12 @@
         <height>16</height>
        </rect>
       </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="text">
        <string>No settings yet.</string>
       </property>
@@ -196,6 +220,12 @@
        <width>81</width>
        <height>16</height>
       </rect>
+     </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
      </property>
      <property name="text">
       <string>No settings yet.</string>
@@ -227,6 +257,12 @@
         <height>17</height>
        </rect>
       </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="text">
        <string>Block pop-up windows</string>
       </property>
@@ -239,6 +275,12 @@
         <width>151</width>
         <height>17</height>
        </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
       <property name="text">
        <string>Load images automatically</string>
@@ -253,6 +295,12 @@
         <height>17</height>
        </rect>
       </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="text">
        <string>Enable JavaScript</string>
       </property>
@@ -265,6 +313,12 @@
         <width>75</width>
         <height>23</height>
        </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
       <property name="text">
        <string>Exceptions...</string>
@@ -279,6 +333,12 @@
         <height>23</height>
        </rect>
       </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="text">
        <string>Exceptions...</string>
       </property>
@@ -291,6 +351,12 @@
         <width>75</width>
         <height>23</height>
        </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
       <property name="text">
        <string>Advanced...</string>
@@ -317,6 +383,12 @@
         <width>71</width>
         <height>16</height>
        </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
       <property name="text">
        <string>Default font:</string>
@@ -364,6 +436,12 @@
         <height>23</height>
        </rect>
       </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="text">
        <string>Advanced...</string>
       </property>
@@ -376,6 +454,12 @@
         <width>75</width>
         <height>23</height>
        </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
       <property name="text">
        <string>Colors...</string>
@@ -403,6 +487,12 @@
         <height>16</height>
        </rect>
       </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="text">
        <string>Choose your preferred language for displaying pages</string>
       </property>
@@ -415,6 +505,12 @@
         <width>75</width>
         <height>23</height>
        </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
       <property name="text">
        <string>Choose...</string>
@@ -434,6 +530,12 @@
        <width>91</width>
        <height>16</height>
       </rect>
+     </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
      </property>
      <property name="text">
       <string>No settings yet.</string>
@@ -465,6 +567,12 @@
         <height>17</height>
        </rect>
       </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="text">
        <string>Enable cookies</string>
       </property>
@@ -477,6 +585,12 @@
         <width>151</width>
         <height>17</height>
        </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
       <property name="text">
        <string>Disable 3rd-party cookies</string>
@@ -510,6 +624,12 @@
        <height>16</height>
       </rect>
      </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="text">
       <string>No settings yet.</string>
      </property>
@@ -528,6 +648,12 @@
        <height>16</height>
       </rect>
      </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="text">
       <string>No settings yet.</string>
      </property>
@@ -545,6 +671,12 @@
        <width>81</width>
        <height>16</height>
       </rect>
+     </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
      </property>
      <property name="text">
       <string>No settings yet.</string>
@@ -579,6 +711,30 @@
    </property>
   </widget>
  </widget>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>optComboStartsDisplay</tabstop>
+  <tabstop>optEditHomepage</tabstop>
+  <tabstop>optButtonCurrentPages</tabstop>
+  <tabstop>optUseBookmark</tabstop>
+  <tabstop>optRestoreToDefault</tabstop>
+  <tabstop>optOkButton</tabstop>
+  <tabstop>optCancelButton</tabstop>
+  <tabstop>optCheckpopup</tabstop>
+  <tabstop>optButtonpopup</tabstop>
+  <tabstop>optCheckloadimages</tabstop>
+  <tabstop>optButtonloadimages</tabstop>
+  <tabstop>optEnableJS</tabstop>
+  <tabstop>optButtonJS</tabstop>
+  <tabstop>optComboDefaultFont</tabstop>
+  <tabstop>optComboFontSize</tabstop>
+  <tabstop>optButtonFontAdvanced</tabstop>
+  <tabstop>optButtonFontColors</tabstop>
+  <tabstop>optButtonLanguages</tabstop>
+  <tabstop>optButtonManageCookies</tabstop>
+  <tabstop>optCheckDisable3rdCookies</tabstop>
+  <tabstop>optCheckEnableCookies</tabstop>
+ </tabstops>
  <resources>
   <include location="images.qrc"/>
  </resources>

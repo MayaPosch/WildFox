@@ -19,16 +19,23 @@
 #include <QtNetwork/QNetworkReply>
 #include <QtNetwork/QNetworkRequest>
 #include <QtNetwork/QNetworkCookieJar>
+#include <QWebFrame>
+#include <QWebPage>
 #include <QSettings>
 
 #include "wfwebview.h"
+//#include "networkaccessmanager.h"
 #include "cookiejar.h"
+#include "types.h"
+#include "bookmarks.h"
 
 namespace Ui {
     class MainWindow;
 }
 
+
 class WFWebView;
+class Bookmarks;
 
 class MainWindow : public QMainWindow, public Ui::MainWindow {
     Q_OBJECT
@@ -42,7 +49,10 @@ public slots:
     void options();
     void about();
     
+    void sidebarBookmarks();
+    
     void gotoURL();
+    void gotoURL(QString url);
     void diagnoseLoad(bool ok);
     void tabTitleChanged(QString title);
     void changeTab(int index);
@@ -50,11 +60,15 @@ public slots:
     void newTab(WFWebView* &view);
     void closeTab();
     void closeTab(int index);
+    void newPage(QWebFrame* frame);
     void back();
     void forward();
     void reload();
     void stop();
     void loadInteraction();
+    void bookmarkAdd();
+    void loadBookmark();
+    void loadBookmark(QTreeWidgetItem* item, int column);
     void downloadContent(QNetworkReply* reply);
     void downloadContent(QNetworkRequest request);
     void linkHovered(const QString &link, const QString &title, 
@@ -67,13 +81,16 @@ private:
     void setReloadButton();
     
     QSettings* settings;
-    QString storagePath;    // storage location for application data.
-    WFWebView* wv;          // current webview instance pointer
-    QString icondb; // path to storage location for site icons.
-    QDir savedir;   // directory to save to.
-    QNetworkAccessManager* nam; // the central network access manager
-    CookieJar* cookiejar;    // reference to the cookiejar in use
-    //QNetworkCookieJar* cookies; // the central cookie jar.
+    QString storagePath;        // storage location for application data.
+    WFWebView* wv;              // current webview instance pointer
+    QString icondb;             // path to storage location for site icons.
+    QDir savedir;               // directory to save to.
+    QNetworkAccessManager* nam;  // the central network access manager
+    CookieJar* cookiejar;       // reference to the cookiejar in use
+    Bookmarks* bookmarks;        // the bookmarks object.
+    QFile manifest;
+    QList<QWebPage*> extPages;  // Extension pages
+    QList<Filter> extFilters;   // Extension content script filters
     bool stopbutton;            // is the stop page load button visible?
 };
 

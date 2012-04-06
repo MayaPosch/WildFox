@@ -33,6 +33,60 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
+   <property name="styleSheet">
+    <string notr="true">* {
+margin: 0px;
+padding: 0px;
+}
+
+QPushButton {
+border-radius: 5px;
+background-color: QLinearGradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #ffffff, stop: 0.3 #eeeeee, stop: 0.5 #dddddd, stop: 1 #cccccc);
+border-width: 1px;
+border-color: #999;
+border-style: outset;
+}
+
+#backButton {
+color: black;
+/*border-radius: 20;*/
+width: 50px;
+height: 25px;
+padding-right: 0px;
+margin-right: 0px;
+margin-left: 5px;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+
+QPushButton:pressed {
+	background-color: QLinearGradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #ffffff, stop: 0.3 #eeeeee, stop: 0.5 #d0d0d0, stop: 1 #cccccc);
+border-style: outset;
+border-color: #eee;
+}
+
+#forwardButton {
+height: 25px;
+width: 50px;
+margin-left: 0px;
+padding-left: 0px;
+}
+
+#reloadButton {
+height: 25px;
+width: 50px;
+}
+
+#addressBarGo {
+height: 25px;
+width: 25px;
+margin-right: 5px;
+}
+
+#addressBar {
+height: 25px;
+}</string>
+   </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <property name="margin">
      <number>0</number>
@@ -41,6 +95,9 @@
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
        <widget class="QPushButton" name="backButton">
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
         <property name="text">
          <string>Back</string>
         </property>
@@ -85,25 +142,76 @@
      </layout>
     </item>
     <item>
-     <widget class="QTabWidget" name="tabWidget">
-      <property name="tabShape">
-       <enum>QTabWidget::Rounded</enum>
+     <widget class="QSplitter" name="splitter">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
-      <property name="currentIndex">
-       <number>-1</number>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
       </property>
-      <property name="elideMode">
-       <enum>Qt::ElideRight</enum>
-      </property>
-      <property name="documentMode">
-       <bool>true</bool>
-      </property>
-      <property name="tabsClosable">
-       <bool>true</bool>
-      </property>
-      <property name="movable">
-       <bool>true</bool>
-      </property>
+      <widget class="QTreeWidget" name="bookmarksTree">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>150</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="baseSize">
+        <size>
+         <width>150</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="headerHidden">
+        <bool>true</bool>
+       </property>
+       <column>
+        <property name="text">
+         <string notr="true">1</string>
+        </property>
+       </column>
+      </widget>
+      <widget class="QTabWidget" name="tabWidget">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>2</horstretch>
+         <verstretch>1</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>200</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="tabShape">
+        <enum>QTabWidget::Rounded</enum>
+       </property>
+       <property name="currentIndex">
+        <number>-1</number>
+       </property>
+       <property name="elideMode">
+        <enum>Qt::ElideRight</enum>
+       </property>
+       <property name="documentMode">
+        <bool>true</bool>
+       </property>
+       <property name="tabsClosable">
+        <bool>true</bool>
+       </property>
+       <property name="movable">
+        <bool>true</bool>
+       </property>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -149,7 +257,14 @@
     <property name="title">
      <string>View</string>
     </property>
+    <widget class="QMenu" name="menuSidebars">
+     <property name="title">
+      <string>Sidebars</string>
+     </property>
+     <addaction name="actionBookmarksSidebar"/>
+    </widget>
     <addaction name="actionFull_Screen"/>
+    <addaction name="menuSidebars"/>
    </widget>
    <widget class="QMenu" name="menuHistory">
     <property name="title">
@@ -166,6 +281,7 @@
      <string>Bookmarks</string>
     </property>
     <addaction name="actionBookmark_this_page"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
@@ -296,6 +412,9 @@
    <property name="text">
     <string>Bookmark this page</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
+   </property>
   </action>
   <action name="actionOptions">
    <property name="text">
@@ -349,6 +468,14 @@
    </property>
    <property name="shortcut">
     <string>F6</string>
+   </property>
+  </action>
+  <action name="actionBookmarksSidebar">
+   <property name="text">
+    <string>Bookmarks</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+B</string>
    </property>
   </action>
  </widget>
