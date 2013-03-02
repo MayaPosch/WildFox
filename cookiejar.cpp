@@ -33,7 +33,7 @@ CookieJar::CookieJar() {
     
     // Open the SQLite cookie database if present. Check its integrity. Recreate
     // a default instance if there are any issues.
-    storagePath = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
+    storagePath = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
     storagePath = QDir::toNativeSeparators(storagePath + "/");
     db = QSqlDatabase::addDatabase("QSQLITE", "cookiesdb");
     db.setDatabaseName(storagePath + "cookies.sqlite");
@@ -117,7 +117,7 @@ QList<QNetworkCookie> CookieJar::cookiesForUrl(const QUrl &url) const {
         }*/
         
         // TODO: sort these cookies and verify on path
-        return result;
+        //return result;
     }
         
     // in the buffer, copy it to output list and return
@@ -141,6 +141,11 @@ QList<QNetworkCookie> CookieJar::cookiesForUrl(const QUrl &url) const {
             //qDebug() << "Cookie domain: " << cookieDomain;
             // TODO: verification & sorting
         }
+    }
+    
+    qDebug() << "Printing cookie list.";
+    for (int i = 0; i < result.size(); ++i) {
+        qDebug() << "Domain: " + result[i].domain() << "name: " + result[i].name() << "value: " + result[i].value();
     }
     
     return result;
@@ -179,10 +184,11 @@ bool CookieJar::setCookiesFromUrl(const QList<QNetworkCookie> &cookieList, const
         }*/
         // FIXME: get 3rd-party blocking working...
         
-        //qDebug() << "Cookie name: " << cookie.name();
+        qDebug() << "Cookie name: " << cookie.name();
         /*bool isDeletion = !cookie.isSessionCookie() &&
                 cookie.expirationDate() < now;*/
         if (!cookie.isSessionCookie() && cookie.expirationDate() < now) {
+            qDebug() << "Expired: " << cookie.name() << cookie.value();
             continue; // skip this cookie as it's already expired.
         }
         
@@ -195,6 +201,8 @@ bool CookieJar::setCookiesFromUrl(const QList<QNetworkCookie> &cookieList, const
             }*/
         if (cookie.domain().isEmpty()) {
             cookie.setDomain(defaultDomain);
+            if (!cookie.domain().startsWith(QLatin1Char('.')))
+                cookie.setDomain(QLatin1Char('.') + cookie.domain());
         } else {
             // Ensure the domain starts with a dot if its field was not empty
             // in the HTTP header. There are some servers that forget the
@@ -204,15 +212,17 @@ bool CookieJar::setCookiesFromUrl(const QList<QNetworkCookie> &cookieList, const
                 cookie.setDomain(QLatin1Char('.') + cookie.domain());
             
             QString domain = cookie.domain();
-            if (!(isParentDomain(domain, defaultDomain)
+            /*if (!(isParentDomain(domain, defaultDomain)
                   || isParentDomain(defaultDomain, domain)))
-                continue; // not accepted
+                continue; // not accepted*/
             
             // the check for effective TLDs makes the "embedded dot" rule from RFC 2109 section 4.3.2
             // redundant; the "leading dot" rule has been relaxed anyway, see above
             // we remove the leading dot for this check
-            if (isEffectiveTLD(domain.remove(0, 1)))
+            if (isEffectiveTLD(domain.remove(0, 1))) {
+                qDebug() << "TLD, skipping: " << cookie.name() << cookie.value();
                 continue; // not accepted
+            }
         }
         
         // Check whether this cookie already exists.
@@ -233,7 +243,7 @@ bool CookieJar::setCookiesFromUrl(const QList<QNetworkCookie> &cookieList, const
         
         if (cit != cookiebuffer.end()) {
             // we found the base domain in question, next search the cookies in it for a match
-            //qDebug() << "Searching for cookies in cookie buffer matching " << cookie.name() << "...";
+            qDebug() << "Searching for cookies in cookie buffer matching " << cookie.name() << "...";
             while (cit != cookiebuffer.end() && cit.key() == baseDomain) {
                 QNetworkCookie c = cit.value();
                 //qDebug() << "Cookie name: " << c.name();
@@ -241,32 +251,30 @@ bool CookieJar::setCookiesFromUrl(const QList<QNetworkCookie> &cookieList, const
                         c.domain() == cookie.domain() &&
                         c.path() == cookie.path()) {
                     // same cookie, overwrite it.
-                    //qDebug() << "Found cookie match: " << c.name();
-                    c = cookie;
+                    qDebug() << "Found cookie match: " << c.name() << " - " << c.value();
+                    cit.value() = cookie;
                     updated = true;
                     
-                    if (cookie.isSessionCookie()) {
-                        break; // do not update database
-                    }
-                    
                     // update in database too
-                    // TODO: update secure and HTTPOnly variables too.
                     if (cookie.isSessionCookie()) { ++cit; continue; }
                     query.prepare("UPDATE moz_cookies SET value=:value, expiry=" 
                                   + QString::number(cookie.expirationDate().toTime_t())
+                                  + ", isSecure=:isSecure, isHttpOnly=:isHttpOnly"
                                   + " WHERE baseDomain=:baseDomain AND host=:host AND path=:path AND name=:name");
                     query.bindValue(":value", cookie.value());
                     query.bindValue(":host", cookie.domain());
                     query.bindValue(":baseDomain", baseDomain);
                     query.bindValue(":path", cookie.path());
                     query.bindValue(":name", cookie.name());
+                    query.bindValue(":isSecure", cookie.isSecure());
+                    query.bindValue(":isHttpOnly", cookie.isHttpOnly());
                     bool err = query.exec();
                     if (!err) {
                         qDebug() << "Failed to update database with query: " << query.executedQuery();
                         qDebug() << "Cause: " << query.lastError().text();
                         qDebug() << "name: " << cookie.name() << ", host: " << cookie.domain() << ", path: " << cookie.path();
                         ++cit;
-                        break; // continue with next cookie
+                        continue; // continue with next cookie
                     }
                     
                     query.finish();
@@ -279,7 +287,8 @@ bool CookieJar::setCookiesFromUrl(const QList<QNetworkCookie> &cookieList, const
         }
         
         if (!updated) {
-            //qDebug() << "No existing cookie, inserting as new. Name: " << cookie.name();
+            qDebug() << "No existing cookie, inserting as new. Name: " << cookie.name();
+            qDebug() << "Session cookie: " << cookie.isSessionCookie();
             cookiebuffer.insert(baseDomain, cookie);
             if (!cookie.isSessionCookie()) {
                 uint tstamp = cookie.expirationDate().toTime_t();
@@ -376,7 +385,7 @@ bool CookieJar::loadCookies(QList<QNetworkCookie> &cookies, QString baseDomain) 
             if (dt < now) { 
                 //qDebug() << cookie.name() << ": dt: " << dt.toString() << " | now: " << now.toString();
                 //qDebug() << "UNIX: " << query.value(4).toInt() << " | " << now.toTime_t();
-                // TODO: remove this cookie
+                // remove this cookie
                 QSqlQuery delquery(db);
                 delquery.prepare("DELETE FROM moz_cookies WHERE baseDomain=:baseDomain AND path=:path AND name=:name");
                 delquery.bindValue(":baseDomain", baseDomain);

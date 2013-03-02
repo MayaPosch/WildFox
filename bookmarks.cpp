@@ -29,7 +29,7 @@ Bookmarks::Bookmarks(MainWindow *window) {
     
     // open the bookmarks database file if present. Check its integrity. Create
     // a default instance if there are any issues.
-    storagePath = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
+    storagePath = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
     storagePath = QDir::toNativeSeparators(storagePath + "/");
     db = QSqlDatabase::addDatabase("QSQLITE", "bookmarksdb");
     db.setDatabaseName(storagePath + "bookmarks.sqlite");

@@ -4,12 +4,12 @@
 #
 #-------------------------------------------------
 
-QT       += core gui webkit network sql
+QT       += core gui webkit network sql widgets webkit webkitwidgets uitools
 
 TARGET = WildFox
 TEMPLATE = app
 
-CONFIG += uitools
+#QT += uitools
 
 SOURCES += main.cpp\
         mainwindow.cpp \

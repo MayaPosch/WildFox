@@ -15,6 +15,7 @@
 #define COOKIEJAR_H
 
 #include <QNetworkCookieJar>
+#include <QNetworkCookie>
 #include <QSqlDatabase>
 #include <QMultiMap>
 #include <QSettings>

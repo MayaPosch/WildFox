@@ -22,6 +22,9 @@
 #include <QWebFrame>
 #include <QWebPage>
 #include <QSettings>
+#include <QMessageBox>
+#include <QFileDialog>
+#include <QtWidgets>
 
 #include "wfwebview.h"
 //#include "networkaccessmanager.h"

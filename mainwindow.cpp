@@ -46,6 +46,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(backButton, SIGNAL(pressed()), this, SLOT(back()));
     connect(forwardButton, SIGNAL(pressed()), this, SLOT(forward()));
     connect(reloadButton, SIGNAL(pressed()), this, SLOT(loadInteraction()));
+    tabWidget->addAction(actionReload);
     connect(actionReload, SIGNAL(triggered()), this, SLOT(reload()));
     connect(actionStop, SIGNAL(triggered()), this, SLOT(stop()));
     connect(addressBar, SIGNAL(returnPressed()), this, SLOT(gotoURL()));
@@ -53,7 +54,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(tabWidget, SIGNAL(currentChanged(int)), this, SLOT(changeTab(int)));
     tabWidget->addAction(actionClose_Tab);
     connect(tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
-    connect(bookmarksTree, SIGNAL(itemActivated(QTreeWidgetItem*,int)), this, SLOT(loadBookmark(QTreeWidgetItem*,int)));
+    connect(bookmarksTree, SIGNAL(itemClicked(QTreeWidgetItem*,int)), this, SLOT(loadBookmark(QTreeWidgetItem*,int)));
     
     connect(actionBookmark_this_page, SIGNAL(triggered()), this, SLOT(bookmarkAdd()));
     
@@ -76,7 +77,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QApplication::setActiveWindow(this);
     //settings = new QSettings("Nyanko", "WildFox");
     settings = new QSettings();
-    storagePath = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
+    storagePath = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
     QDir dir(storagePath);
     if (!dir.exists()) {
         dir.mkpath(storagePath); // create path if it doesn't exist yet
@@ -237,7 +238,7 @@ void MainWindow::gotoURL(QString url) {
     
     // Load the URL, change the UI elements to allow stopping this action.
     setStopButton();
-    wv->setUrl(QUrl(url));
+    wv->load(QUrl(url));
 }
 
 
@@ -247,7 +248,8 @@ void MainWindow::gotoURL(QString url) {
 void MainWindow::diagnoseLoad(bool ok) {
     setReloadButton();
     if (!ok) {
-        QMessageBox::critical(this, tr("Error"), tr("Failed to load the URL"));
+        //QMessageBox::critical(this, tr("Error"), tr("Failed to load the URL")); // FIXME: triggers crash with favicon path customized due to QtWebkit bug! 
+																					// Don't return to the event loop.
     }
     else {
         //QWidget* tab = tabWidget->currentWidget
@@ -338,10 +340,11 @@ void MainWindow::changeTab(int index) {
 // Open a new browser tab at the end of the tab bar.
 void MainWindow::newTab() {
     qDebug("Loading new tab...");
-    QMessageBox msgBox;
+    //QMessageBox msgBox;
     wv = new WFWebView();
     //connect(wv, SIGNAL(loadFinished(bool)), this, SLOT(diagnoseLoad(bool)));
-    connect(wv->page()->mainFrame(), SIGNAL(loadFinished(bool)), this, SLOT(diagnoseLoad(bool)));
+    connect(wv->page()->mainFrame(), SIGNAL(loadFinished(bool)), 
+            this, SLOT(diagnoseLoad(bool)));
     connect(wv, SIGNAL(titleChanged(QString)), 
             this, SLOT(tabTitleChanged(QString)));
     if (wv == 0) {
@@ -442,6 +445,7 @@ void MainWindow::forward() {
 void MainWindow::reload() {
     if (wv == 0) { return; }
     
+    wv->stop();
     wv->reload();
 }
 
@@ -482,7 +486,9 @@ void MainWindow::bookmarkAdd() {
 void MainWindow::loadBookmark() {
     QAction* action = (QAction*) sender();
     QString url = action->data().toString();
-    gotoURL(url);
+    addressBar->setText(url);
+    gotoURL();
+    //gotoURL(url);
 }
 
 
@@ -491,7 +497,9 @@ void MainWindow::loadBookmark() {
 void MainWindow::loadBookmark(QTreeWidgetItem *item, int column) {
     QList<QVariant> data = item->data(0, Qt::UserRole).toList();
     QString url = data[0].toString();
-    gotoURL(url);
+    addressBar->setText(url);
+    gotoURL();
+    //gotoURL(url);
 }
 
 

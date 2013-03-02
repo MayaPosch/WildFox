@@ -77,6 +77,7 @@ QString getPublicDomain(const QString &domain) {
     for (int i = sections.count() - 1; i >= 0; --i) {
         tld.prepend(QLatin1Char('.') + sections.at(i));
         if (!isEffectiveTLD(tld.right(tld.size() - 1))) {
+            tld = '.' + sections.at(i - 1) + tld;
             return tld;
         }
     }
