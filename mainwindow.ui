@@ -222,7 +222,7 @@ height: 25px;
      <x>0</x>
      <y>0</y>
      <width>741</width>
-     <height>21</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -239,7 +239,7 @@ height: 25px;
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
-     <string>Edit</string>
+     <string>&amp;Edit</string>
     </property>
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
@@ -255,7 +255,7 @@ height: 25px;
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
-     <string>View</string>
+     <string>&amp;View</string>
     </property>
     <widget class="QMenu" name="menuSidebars">
      <property name="title">
@@ -268,7 +268,7 @@ height: 25px;
    </widget>
    <widget class="QMenu" name="menuHistory">
     <property name="title">
-     <string>History</string>
+     <string>Hi&amp;story</string>
     </property>
     <addaction name="actionShow_all_history"/>
     <addaction name="separator"/>
@@ -278,20 +278,20 @@ height: 25px;
    </widget>
    <widget class="QMenu" name="menuBookmarks">
     <property name="title">
-     <string>Bookmarks</string>
+     <string>&amp;Bookmarks</string>
     </property>
     <addaction name="actionBookmark_this_page"/>
     <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
-     <string>Tools</string>
+     <string>&amp;Tools</string>
     </property>
     <addaction name="actionOptions"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
-     <string>Help</string>
+     <string>&amp;Help</string>
     </property>
     <addaction name="actionAbout_WildFox"/>
    </widget>
