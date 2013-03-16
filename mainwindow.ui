@@ -88,7 +88,16 @@ height: 25px;
 }</string>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
-    <property name="margin">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
      <number>0</number>
     </property>
     <item>
@@ -222,7 +231,7 @@ height: 25px;
      <x>0</x>
      <y>0</y>
      <width>741</width>
-     <height>21</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -239,7 +248,7 @@ height: 25px;
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
-     <string>Edit</string>
+     <string>&amp;Edit</string>
     </property>
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
@@ -255,11 +264,11 @@ height: 25px;
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
-     <string>View</string>
+     <string>&amp;View</string>
     </property>
     <widget class="QMenu" name="menuSidebars">
      <property name="title">
-      <string>Sidebars</string>
+      <string>Sid&amp;ebars</string>
      </property>
      <addaction name="actionBookmarksSidebar"/>
     </widget>
@@ -268,7 +277,7 @@ height: 25px;
    </widget>
    <widget class="QMenu" name="menuHistory">
     <property name="title">
-     <string>History</string>
+     <string>Hi&amp;story</string>
     </property>
     <addaction name="actionShow_all_history"/>
     <addaction name="separator"/>
@@ -278,20 +287,20 @@ height: 25px;
    </widget>
    <widget class="QMenu" name="menuBookmarks">
     <property name="title">
-     <string>Bookmarks</string>
+     <string>&amp;Bookmarks</string>
     </property>
     <addaction name="actionBookmark_this_page"/>
     <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
-     <string>Tools</string>
+     <string>&amp;Tools</string>
     </property>
     <addaction name="actionOptions"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
-     <string>Help</string>
+     <string>&amp;Help</string>
     </property>
     <addaction name="actionAbout_WildFox"/>
    </widget>
@@ -314,7 +323,10 @@ height: 25px;
   </action>
   <action name="actionQuit">
    <property name="text">
-    <string>Quit</string>
+    <string>&amp;Quit</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
    </property>
   </action>
   <action name="actionNew_File">
@@ -324,12 +336,18 @@ height: 25px;
   </action>
   <action name="actionOpen_File">
    <property name="text">
-    <string>Open File...</string>
+    <string>&amp;Open File...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
    </property>
   </action>
   <action name="actionSave_Page_As">
    <property name="text">
-    <string>Save Page As...</string>
+    <string>Save Page &amp;As...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
   </action>
   <action name="actionNavigateBack">
@@ -350,52 +368,82 @@ height: 25px;
   </action>
   <action name="actionUndo">
    <property name="text">
-    <string>Undo</string>
+    <string>&amp;Undo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
    </property>
   </action>
   <action name="actionRedo">
    <property name="text">
-    <string>Redo</string>
+    <string>&amp;Redo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Z</string>
    </property>
   </action>
   <action name="actionCut">
    <property name="text">
-    <string>Cut</string>
+    <string>Cu&amp;t</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+X</string>
    </property>
   </action>
   <action name="actionCopy">
    <property name="text">
-    <string>Copy</string>
+    <string>&amp;Copy</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
    </property>
   </action>
   <action name="actionPaste">
    <property name="text">
-    <string>Paste</string>
+    <string>&amp;Paste</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+V</string>
    </property>
   </action>
   <action name="actionDelete">
    <property name="text">
-    <string>Delete</string>
+    <string>&amp;Delete</string>
+   </property>
+   <property name="shortcut">
+    <string>Del</string>
    </property>
   </action>
   <action name="actionSelect_All">
    <property name="text">
-    <string>Select All</string>
+    <string>Select &amp;All</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+A</string>
    </property>
   </action>
   <action name="actionFind">
    <property name="text">
-    <string>Find</string>
+    <string>&amp;Find</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
    </property>
   </action>
   <action name="actionFull_Screen">
    <property name="text">
-    <string>Full Screen</string>
+    <string>&amp;Full Screen</string>
+   </property>
+   <property name="shortcut">
+    <string>F11</string>
    </property>
   </action>
   <action name="actionShow_all_history">
    <property name="text">
     <string>Show all history</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+H</string>
    </property>
   </action>
   <action name="actionRecently_closed_tabs">
@@ -423,7 +471,7 @@ height: 25px;
   </action>
   <action name="actionAbout_WildFox">
    <property name="text">
-    <string>About WildFox</string>
+    <string>&amp;About WildFox</string>
    </property>
   </action>
   <action name="actionClose_Tab">
