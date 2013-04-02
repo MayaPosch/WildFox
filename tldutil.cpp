@@ -70,7 +70,7 @@ bool isEffectiveTLD(const QString &domain) {
 // Return it and the first public section preceding it.
 QString getPublicDomain(const QString &domain) {
     QStringList sections = domain.toLower().split(QLatin1Char('.'), QString::SkipEmptyParts);
-    if (sections.isEmpty())
+    if (sections.isEmpty() || sections.size() <= 1)
         return QString();
     
     QString tld = "";

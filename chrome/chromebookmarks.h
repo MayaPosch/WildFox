@@ -18,7 +18,7 @@
 #include <QtWebKit>
 
 //class Bookmarks;
-#include "bookmarks.h"
+#include "../bookmarks.h"
 
 
 class ChromeBookmarks : public QObject {

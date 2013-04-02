@@ -27,6 +27,7 @@ WFWebView::WFWebView() {
             break;
         }
     }*/
+    setPage(new WFWebPage); // use our custom page class
     
     uip = (MainWindow*) QApplication::activeWindow();
     if (uip == 0) {

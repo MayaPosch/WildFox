@@ -16,6 +16,7 @@
 
 #include "mainwindow.h"
 #include <QWebView>
+#include "wfwebpage.h"
 
 class MainWindow;
 

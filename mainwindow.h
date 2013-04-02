@@ -78,6 +78,9 @@ public slots:
                      const QString &textContent);
     
     void gotoAddressBar();
+    
+protected:
+    void closeEvent(QCloseEvent* event);
 
 private:
     void setStopButton();

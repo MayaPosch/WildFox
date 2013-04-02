@@ -140,6 +140,11 @@ MainWindow::MainWindow(QWidget *parent) :
         }
     }
     
+    // Restore application state
+    restoreGeometry(settings->value("geometry").toByteArray());
+    restoreState(settings->value("windowState").toByteArray());
+    bookmarksTree->setVisible(settings->value("bookmarkSidebar", false).toBool());
+    
     // pass extension filter data to the network access manager
     //nam->setFilters(extFilters);
     
@@ -226,6 +231,7 @@ void MainWindow::gotoURL(QString url) {
     url.toLower();
     qDebug() << "Lower-case URL: " << url;
     
+    // TODO: perform more advanced URL validation.
     if (url.size() < 1) {
         QMessageBox::critical(this, "Error", "No URL provided: " + url);
         return;
@@ -551,3 +557,13 @@ void MainWindow::gotoAddressBar() {
     addressBar->setFocus(Qt::ShortcutFocusReason);
     addressBar->selectAll();
 }
+
+
+// --- CLOSE EVENT ---
+// Reeimplements the close event function of QWidget to save state.
+void MainWindow::closeEvent(QCloseEvent* event)  {
+     settings->setValue("geometry", saveGeometry());
+     settings->setValue("windowState", saveState());
+     settings->setValue("bookmarkSidebar", bookmarksTree->isVisible());
+     QMainWindow::closeEvent(event);
+ }
