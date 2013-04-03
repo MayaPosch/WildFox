@@ -85,6 +85,10 @@ margin-right: 5px;
 
 #addressBar {
 height: 25px;
+}
+
+#searchBar {
+height: 25px;
 }</string>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -541,6 +545,16 @@ height: 25px;
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <tabstops>
+  <tabstop>backButton</tabstop>
+  <tabstop>forwardButton</tabstop>
+  <tabstop>reloadButton</tabstop>
+  <tabstop>addressBar</tabstop>
+  <tabstop>addressBarGo</tabstop>
+  <tabstop>searchBar</tabstop>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>bookmarksTree</tabstop>
+ </tabstops>
  <resources>
   <include location="images.qrc"/>
  </resources>

@@ -78,6 +78,7 @@ public slots:
                      const QString &textContent);
     
     void gotoAddressBar();
+    void startSearch();
     
 protected:
     void closeEvent(QCloseEvent* event);

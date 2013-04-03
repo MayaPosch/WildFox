@@ -51,6 +51,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(actionStop, SIGNAL(triggered()), this, SLOT(stop()));
     connect(addressBar, SIGNAL(returnPressed()), this, SLOT(gotoURL()));
     connect(addressBarGo, SIGNAL(pressed()), this, SLOT(gotoURL()));
+    connect(searchBar, SIGNAL(returnPressed()), this, SLOT(startSearch()));
     connect(tabWidget, SIGNAL(currentChanged(int)), this, SLOT(changeTab(int)));
     tabWidget->addAction(actionClose_Tab);
     connect(tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
@@ -65,6 +66,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QCoreApplication::setOrganizationName("Nyanko");
     QCoreApplication::setOrganizationDomain("nyanko.ws");
     QCoreApplication::setApplicationName("WildFox");
+    QCoreApplication::setApplicationVersion("0.1 Alpha");
     QList<QNetworkProxy> proxies = QNetworkProxyFactory::systemProxyForQuery();
     QNetworkProxy::setApplicationProxy(proxies[0]);
     wv = 0;
@@ -556,6 +558,18 @@ void MainWindow::linkHovered(const QString &link, const QString &title,
 void MainWindow::gotoAddressBar() {
     addressBar->setFocus(Qt::ShortcutFocusReason);
     addressBar->selectAll();
+}
+
+
+// --- START SEARCH ---
+// Send a search query to the selected web search engine.
+// TODO: Current default is Google, make this configurable.
+// Query is HTML-encoded to make it safe for transmission.
+void MainWindow::startSearch() {
+    QString query = searchBar->text();
+    if (query.isEmpty()) { return; }
+    query.replace(" ", "+", Qt::CaseInsensitive);
+    gotoURL("http://google.com/search?q=" + query);
 }
 
 
