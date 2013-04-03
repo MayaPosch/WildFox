@@ -50,7 +50,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(actionReload, SIGNAL(triggered()), this, SLOT(reload()));
     connect(actionStop, SIGNAL(triggered()), this, SLOT(stop()));
     connect(addressBar, SIGNAL(returnPressed()), this, SLOT(gotoURL()));
-    connect(addressBarGo, SIGNAL(pressed()), this, SLOT(gotoURL()));
+    //connect(addressBarGo, SIGNAL(pressed()), this, SLOT(gotoURL()));
     connect(searchBar, SIGNAL(returnPressed()), this, SLOT(startSearch()));
     connect(tabWidget, SIGNAL(currentChanged(int)), this, SLOT(changeTab(int)));
     tabWidget->addAction(actionClose_Tab);
@@ -165,7 +165,8 @@ MainWindow::~MainWindow() {
 // --- SET STOP BUTTON ---
 // Changes the UI elements to show a stop loading button with associated shortcut.
 void MainWindow::setStopButton() {
-    reloadButton->setText(tr("Stop"));
+    //reloadButton->setText(tr("Stop"));
+    reloadButton->setIcon(QIcon(":/wildfox/img/process-stop.png"));
     stopbutton = true;
 }
 
@@ -173,7 +174,8 @@ void MainWindow::setStopButton() {
 // --- SET RELOAD BUTTON ---
 // Changes the UI elements to show a reload page button with associated shorcut.
 void MainWindow::setReloadButton() {
-    reloadButton->setText(tr("Reload"));
+    //reloadButton->setText(tr("Reload"));
+    reloadButton->setIcon(QIcon(":/wildfox/img/view-refresh.png"));
     stopbutton = false;
 }
 
