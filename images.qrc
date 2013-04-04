@@ -4,6 +4,7 @@
         <file>img/go-next.png</file>
         <file>img/go-previous.png</file>
         <file>img/process-stop.png</file>
+        <file>img/system-search.png</file>
         <file>img/view-refresh.png</file>
     </qresource>
 </RCC>

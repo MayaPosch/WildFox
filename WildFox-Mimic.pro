@@ -23,7 +23,8 @@ SOURCES += main.cpp\
     bookmarks.cpp \
     chrome/chromejsinterface.cpp \
     chrome/chromebookmarks.cpp \
-    wfwebpage.cpp
+    wfwebpage.cpp \
+    wfwebhistoryinterface.cpp
 
 HEADERS  += mainwindow.h \
     wfwebview.h \
@@ -38,7 +39,8 @@ HEADERS  += mainwindow.h \
     bookmarks.h \
     chrome/chromejsinterface.h \
     chrome/chromebookmarks.h \
-    wfwebpage.h
+    wfwebpage.h \
+    wfwebhistoryinterface.h
 
 FORMS    += mainwindow.ui \
     optionsdialog.ui \
