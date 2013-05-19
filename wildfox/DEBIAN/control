@@ -1,0 +1,10 @@
+Package: wildfox
+Section: web
+Priority: extra
+Essential: no
+Version: 0.0.1-1
+Architecture: amd64
+Installed-Size: 496
+Depends: fglrx,libc6,libffi6,libgcc1,libglib2.0-0,libgstreamer0.10-0,libgstreamer-plugins-base0.10-0,libicu48,libjpeg-turbo8,liblzma5,liborc-0.4-0,libpcre3,libpng12-0,libqt53d5,libqt5core5,libqt5gui5,libqt5location5,libqt5network5,libqt5opengl5,libqt5printsupport5,libqt5qml5,libqt5quick5,libqt5sensors5,libqt5sql5,libqt5v8-5,libqt5webkit5,libqt5widgets5,libsqlite3-0,libstdc++6,libx11-6,libxau6,libxcb1,libxdmcp6,libxext6,libxml2,libxslt1.1,zlib1g
+Maintainer: Maya Posh <maya@posh.org>
+Description: WildFox project.
