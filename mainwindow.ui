@@ -327,6 +327,7 @@ height: 20px;
      <string>&amp;File</string>
     </property>
     <addaction name="actionNewTab"/>
+    <addaction name="actionOpen_History_Tab"/>
     <addaction name="actionNew_File"/>
     <addaction name="actionOpen_File"/>
     <addaction name="separator"/>
@@ -625,7 +626,7 @@ height: 20px;
   </action>
   <action name="actionOpen_History_Tab">
    <property name="text">
-    <string>Open History Tab</string>
+    <string>New History Tab</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+G</string>
@@ -637,9 +638,11 @@ height: 20px;
   <tabstop>backButton</tabstop>
   <tabstop>forwardButton</tabstop>
   <tabstop>reloadButton</tabstop>
+  <tabstop>addressBar</tabstop>
+  <tabstop>historyButton</tabstop>
   <tabstop>searchBar</tabstop>
-  <tabstop>tabWidget</tabstop>
   <tabstop>bookmarksTree</tabstop>
+  <tabstop>tabWidget</tabstop>
  </tabstops>
  <resources>
   <include location="images.qrc"/>

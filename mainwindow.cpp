@@ -57,14 +57,26 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionStop, SIGNAL(triggered()), this, SLOT(stop()));
     connect(ui->addressBar->lineEdit(), SIGNAL(returnPressed()), this, SLOT(gotoURL()));
     //connect(addressBarGo, SIGNAL(pressed()), this, SLOT(gotoURL()));
-    connect(ui->searchBar, SIGNAL(returnPressed()), this, SLOT(startSearch()));
-    connect(ui->tabWidget, SIGNAL(currentChanged(int)), this, SLOT(changeTab(int)));
+    connect(ui->historyButton, SIGNAL(pressed()), 
+            this, SLOT(openHistoryDialog()));
+    connect(ui->searchBar, SIGNAL(returnPressed()), 
+            this, SLOT(startSearch()));
+    connect(ui->tabWidget, SIGNAL(currentChanged(int)), this, 
+            SLOT(changeTab(int)));
     ui->tabWidget->addAction(ui->actionClose_Tab);
     connect(ui->tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
-    connect(ui->bookmarksTree, SIGNAL(itemClicked(QTreeWidgetItem*,int)), this, SLOT(loadBookmark(QTreeWidgetItem*,int)));
+    connect(ui->bookmarksTree, SIGNAL(itemClicked(QTreeWidgetItem*,int)), 
+            this, SLOT(loadBookmark(QTreeWidgetItem*,int)));
     
     connect(ui->actionBookmark_this_page, SIGNAL(triggered()), this, SLOT(bookmarkAdd()));
     
+    addAction(ui->actionOpen_History_Tab);
+    connect(ui->actionOpen_History_Tab, SIGNAL(triggered()), 
+            this, SLOT(newHistoryTab()));
+    addAction(ui->actionHistory_dialog);
+    connect(ui->actionHistory_dialog, SIGNAL(triggered()), 
+            this, SLOT(openHistoryDialog()));
+            
     addAction(ui->actionGo_to_address_bar);
     connect(ui->actionGo_to_address_bar, SIGNAL(triggered()), this, SLOT(gotoAddressBar()));
     //connect(ui->addressBar->lineEdit(), SIGNAL(textEdited(QString)),
@@ -723,8 +735,16 @@ void MainWindow::newHistoryTab() {
 // --- OPEN HISTORY DIALOG ---
 // Open the history dialogue.
 void MainWindow::openHistoryDialog() {
-    HistoryDialog dialog;
-    dialog.exec();
+    QString url;
+    HistoryDialog dialog(&url);
+    int r = dialog.exec();
+    if (r == QDialog::Accepted) {
+        qDebug() << "Accepted.";
+        // open URL in the current tab, if URL string is non-empty
+        if (url.isEmpty()) { return; }
+        qDebug() << "Load URL...";
+        gotoURL(url);
+    }
 }
 
 
