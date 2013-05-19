@@ -67,10 +67,10 @@ Bookmarks::Bookmarks(MainWindow *window) {
     }
     
     query.finish();
-    contextmenu = new QMenu(mw->bookmarksTree);
-    mw->bookmarksTree->setContextMenuPolicy(Qt::ActionsContextMenu);
+    contextmenu = new QMenu(mw->ui->bookmarksTree);
+    mw->ui->bookmarksTree->setContextMenuPolicy(Qt::ActionsContextMenu);
     QAction* deleteAction = new QAction(tr("Delete Bookmark"), contextmenu);
-    mw->bookmarksTree->addAction(deleteAction);
+    mw->ui->bookmarksTree->addAction(deleteAction);
     connect(deleteAction, SIGNAL(triggered()), this, SLOT(deleteBookmark()));
     createBookmarksMenu();
 }
@@ -85,14 +85,14 @@ Bookmarks::~Bookmarks() {
 // --- CREATE BOOKMARKS MENU ---
 // Assemble the bookmarks menu from scratch.
 void Bookmarks::createBookmarksMenu() {
-    mw->menuBookmarks->clear();
-    mw->bookmarksTree->clear();
+    mw->ui->menuBookmarks->clear();
+    mw->ui->bookmarksTree->clear();
     menus.clear();
     actions.clear();
-    QAction* actionAdd = mw->menuBookmarks->addAction("Bookmark this page");
+    QAction* actionAdd = mw->ui->menuBookmarks->addAction("Bookmark this page");
     actionAdd->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_D));
     connect(actionAdd, SIGNAL(triggered()), mw, SLOT(bookmarkAdd()));
-    mw->menuBookmarks->addSeparator();
+    mw->ui->menuBookmarks->addSeparator();
     
     // Assemble the in-memory bookmark data structures
     // FIXME: just retrieving in a 'flat' style now, not dealing with folders.
@@ -120,6 +120,7 @@ void Bookmarks::createBookmarksMenu() {
             action.id = query.value(0).toInt();
             action.action = new QAction(query.value(3).toString(), mw);
             action.action->setData(query.value(4).toString());
+            action.action->setIcon(QIcon(QWebSettings::iconForUrl(QUrl(query.value(4).toString()))));
             connect(action.action, SIGNAL(triggered()), mw, SLOT(loadBookmark()));
             actions.insert(parent, action);
         }
@@ -128,11 +129,11 @@ void Bookmarks::createBookmarksMenu() {
     // Set the bookmarks actions/menus in the GUI.
     // First fetch the root folder (ID:1), call the recursive function on it.
     if (menus.contains(1) || actions.contains(1)) {
-        QTreeWidgetItem* treeitem = new QTreeWidgetItem(mw->bookmarksTree);
+        QTreeWidgetItem* treeitem = new QTreeWidgetItem(mw->ui->bookmarksTree);
         treeitem->setText(0, "Bookmarks");
         //qDebug() << "Adding items to root.";
-        recursiveTreeDescent(mw->menuBookmarks, treeitem, 1);
-        mw->bookmarksTree->expandAll();
+        recursiveTreeDescent(mw->ui->menuBookmarks, treeitem, 1);
+        mw->ui->bookmarksTree->expandAll();
     }
     else {
         qDebug() << "No root folder found for bookmarks.";
@@ -163,6 +164,7 @@ void Bookmarks::recursiveTreeDescent(QMenu* menu, QTreeWidgetItem *parentfolder,
         //qDebug() << "Found bookmark, adding...";
         item = new QTreeWidgetItem(parentfolder);
         item->setText(0, bookmarks[i].action->text());
+        item->setIcon(0, QIcon(QWebSettings::iconForUrl(QUrl(bookmarks[i].action->data().toString()))));
         //qDebug() << "Name: " << item->text(0);
         bookmarkdata.append(bookmarks[i].action->data());   // ID 0
         bookmarkdata.append(bookmarks[i].id);               // ID 1
@@ -211,7 +213,7 @@ QVariantMap Bookmarks::create(QVariantMap bookmark) {
 // Delete the currently selected bookmark.
 void Bookmarks::deleteBookmark() {
     qDebug() << "Delete triggered.";
-    QTreeWidgetItem* item = mw->bookmarksTree->currentItem();
+    QTreeWidgetItem* item = mw->ui->bookmarksTree->currentItem();
     int id = item->data(0, Qt::UserRole).toList()[1].toInt();
     QSqlQuery query(db);
     query.prepare("DELETE FROM bookmarks WHERE id=:id");

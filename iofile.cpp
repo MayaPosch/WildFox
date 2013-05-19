@@ -15,6 +15,8 @@
 
 #include "iofile.h"
 
+#include <QDebug>
+
 
 // --- SET NETWORK REPLY ---
 // Set the QNetworkReply instance to use.
@@ -36,13 +38,28 @@ void IOFile::readProgress(qint64 current, qint64 total) {
 // Called when the QNetworkReply has new data available.
 // Read new data from the QNetworkReply instance and write it to the open file.
 void IOFile::readFromReply() {
+    qDebug() << "Reading from reply...";
     if (!isOpen()) { return; }
     
+    qDebug() << "Reading...";
+    qDebug() << "Bytes:" << reply->bytesAvailable();
     write(reply->readAll());
     
-    /*while (reply->bytesAvailable() > 0) {
-        write(reply->read(0, 2048), 2048);
-    }*/
+    /*char* bytes = new char[4096];
+    qint64 count = reply->read(bytes, 4096);
+    if (count == 0) {
+        qDebug() << "No more data available.";
+        return;
+    }
+    else if (count < 0) {
+        qDebug() << "An error occurred on the Reply socket.";
+        return;
+    }
+    
+    qDebug() << "Writing...";
+    //while (reply->bytesAvailable() > 0) {
+        write(bytes, count);
+   // }*/
 }
 
 

@@ -27,40 +27,49 @@
 #include "iofile.h"
 #include "optionsdialog.h"
 #include "json.h"
+#include "wfwebhistoryinterface.h"
+#include "addressbardelegate.h"
+#include "addressbareventfilter.h"
+#include "historydialog.h"
 
 
 // --- CONSTRUCTOR ---
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent) {
-    setupUi(this);
+    QMainWindow(parent), ui(new Ui::MainWindow) {
+    ui->setupUi(this);
+    
+    //qDebug() << "Mew?";
     
     // menu connections
-    connect(actionQuit, SIGNAL(triggered()), this, SLOT(quit()));
-    connect(actionAbout_WildFox, SIGNAL(triggered()), this, SLOT(about()));
-    connect(actionNewTab, SIGNAL(triggered()), this, SLOT(newTab()));
-    connect(actionClose_Tab, SIGNAL(triggered()), this, SLOT(closeTab()));
-    connect(actionOptions, SIGNAL(triggered()), this, SLOT(options()));
-    connect(actionBookmarksSidebar, SIGNAL(triggered()), this, SLOT(sidebarBookmarks()));
+    connect(ui->actionQuit, SIGNAL(triggered()), this, SLOT(quit()));
+    connect(ui->actionAbout_WildFox, SIGNAL(triggered()), this, SLOT(about()));
+    connect(ui->actionNewTab, SIGNAL(triggered()), this, SLOT(newTab()));
+    connect(ui->actionClose_Tab, SIGNAL(triggered()), this, SLOT(closeTab()));
+    connect(ui->actionOptions, SIGNAL(triggered()), this, SLOT(options()));
+    connect(ui->actionBookmarksSidebar, SIGNAL(triggered()), this, SLOT(sidebarBookmarks()));
     
     // other interface connections
-    connect(backButton, SIGNAL(pressed()), this, SLOT(back()));
-    connect(forwardButton, SIGNAL(pressed()), this, SLOT(forward()));
-    connect(reloadButton, SIGNAL(pressed()), this, SLOT(loadInteraction()));
-    tabWidget->addAction(actionReload);
-    connect(actionReload, SIGNAL(triggered()), this, SLOT(reload()));
-    connect(actionStop, SIGNAL(triggered()), this, SLOT(stop()));
-    connect(addressBar, SIGNAL(returnPressed()), this, SLOT(gotoURL()));
+    connect(ui->backButton, SIGNAL(pressed()), this, SLOT(back()));
+    connect(ui->forwardButton, SIGNAL(pressed()), this, SLOT(forward()));
+    connect(ui->reloadButton, SIGNAL(pressed()), this, SLOT(loadInteraction()));
+    //ui->tabWidget->addAction(ui->actionReload);
+    connect(ui->actionReload, SIGNAL(triggered()), this, SLOT(reload()));
+    connect(ui->actionStop, SIGNAL(triggered()), this, SLOT(stop()));
+    connect(ui->addressBar->lineEdit(), SIGNAL(returnPressed()), this, SLOT(gotoURL()));
     //connect(addressBarGo, SIGNAL(pressed()), this, SLOT(gotoURL()));
-    connect(searchBar, SIGNAL(returnPressed()), this, SLOT(startSearch()));
-    connect(tabWidget, SIGNAL(currentChanged(int)), this, SLOT(changeTab(int)));
-    tabWidget->addAction(actionClose_Tab);
-    connect(tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
-    connect(bookmarksTree, SIGNAL(itemClicked(QTreeWidgetItem*,int)), this, SLOT(loadBookmark(QTreeWidgetItem*,int)));
+    connect(ui->searchBar, SIGNAL(returnPressed()), this, SLOT(startSearch()));
+    connect(ui->tabWidget, SIGNAL(currentChanged(int)), this, SLOT(changeTab(int)));
+    ui->tabWidget->addAction(ui->actionClose_Tab);
+    connect(ui->tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
+    connect(ui->bookmarksTree, SIGNAL(itemClicked(QTreeWidgetItem*,int)), this, SLOT(loadBookmark(QTreeWidgetItem*,int)));
     
-    connect(actionBookmark_this_page, SIGNAL(triggered()), this, SLOT(bookmarkAdd()));
+    connect(ui->actionBookmark_this_page, SIGNAL(triggered()), this, SLOT(bookmarkAdd()));
     
-    addAction(actionGo_to_address_bar);
-    connect(actionGo_to_address_bar, SIGNAL(triggered()), this, SLOT(gotoAddressBar()));
+    addAction(ui->actionGo_to_address_bar);
+    connect(ui->actionGo_to_address_bar, SIGNAL(triggered()), this, SLOT(gotoAddressBar()));
+    //connect(ui->addressBar->lineEdit(), SIGNAL(textEdited(QString)),
+            //this, SLOT(addressBarTextChanged(QString)));
+    //connect(ui->addressBar, SIGNAL(activated(int)), this, SLOT(historyItemTriggered(int)));
     
     // defaults
     QCoreApplication::setOrganizationName("Nyanko");
@@ -71,10 +80,20 @@ MainWindow::MainWindow(QWidget *parent) :
     QNetworkProxy::setApplicationProxy(proxies[0]);
     wv = 0;
     //icondb = "./";
+    historydb = HistoryDatabase::getInstance();
+    ui->addressBar->setMaxVisibleItems(10);
+    completer = new QCompleter(this);
+    historyModel = new QSqlQueryModel;
+    historyModel->setQuery("SELECT url FROM history", historydb->db);
+    completer->setModel(historyModel);
+    completer->setCaseSensitivity(Qt::CaseInsensitive);
+    //completer->setCompletionMode(QCompleter::UnfilteredPopupCompletion);
+    ui->addressBar->lineEdit()->setCompleter(completer);
     cookiejar = new CookieJar();
     bookmarks = new Bookmarks(this);
     nam = new QNetworkAccessManager(this);
     nam->setCookieJar(cookiejar);
+    WFWebHistoryInterface::setDefaultInterface(new WFWebHistoryInterface);
     stopbutton = false;
     QApplication::setActiveWindow(this);
     //settings = new QSettings("Nyanko", "WildFox");
@@ -145,10 +164,24 @@ MainWindow::MainWindow(QWidget *parent) :
     // Restore application state
     restoreGeometry(settings->value("geometry").toByteArray());
     restoreState(settings->value("windowState").toByteArray());
-    bookmarksTree->setVisible(settings->value("bookmarkSidebar", false).toBool());
+    ui->bookmarksTree->setVisible(settings->value("bookmarkSidebar", false).toBool());
     
     // pass extension filter data to the network access manager
     //nam->setFilters(extFilters);
+    
+    // change the address bar QComboBox to use a QTableView instead of its default
+    // QListView.
+    /*historyTable = new QTableWidget();
+    ui->addressBar->setModel(historyTable->model());
+    ui->addressBar->setView(historyTable);
+    historyTable->setRowCount(10);
+    historyTable->setColumnCount(2);
+    connect(historyTable, SIGNAL(itemActivated(QTableWidgetItem*)),
+            this, SLOT(historyItemTriggered(QTableWidgetItem*)));*/
+    
+    // Add the custom delegate to the address bar.
+    AddressBarDelegate* delegate = new AddressBarDelegate;
+    ui->addressBar->setItemDelegate(delegate);
     
     // open empty tab
     newTab();
@@ -159,6 +192,8 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow() {
     //delete nam;
     delete settings;
+    //delete historydb;
+    delete ui;
 }
 
 
@@ -166,7 +201,7 @@ MainWindow::~MainWindow() {
 // Changes the UI elements to show a stop loading button with associated shortcut.
 void MainWindow::setStopButton() {
     //reloadButton->setText(tr("Stop"));
-    reloadButton->setIcon(QIcon(":/wildfox/img/process-stop.png"));
+    ui->reloadButton->setIcon(QIcon(":/wildfox/img/process-stop.png"));
     stopbutton = true;
 }
 
@@ -175,7 +210,7 @@ void MainWindow::setStopButton() {
 // Changes the UI elements to show a reload page button with associated shorcut.
 void MainWindow::setReloadButton() {
     //reloadButton->setText(tr("Reload"));
-    reloadButton->setIcon(QIcon(":/wildfox/img/view-refresh.png"));
+    ui->reloadButton->setIcon(QIcon(":/wildfox/img/view-refresh.png"));
     stopbutton = false;
 }
 
@@ -204,8 +239,13 @@ void MainWindow::about() {
 // Hides/shows the bookmarks sidebar.
 void MainWindow::sidebarBookmarks() {
     //qDebug() << "Setting sidebar visibility...";
-    if (bookmarksTree->isVisible()) { bookmarksTree->hide(); }
-    else { bookmarksTree->setVisible(true); }
+    ui->bookmarksTree->setVisible(!ui->bookmarksTree->isVisible());
+    settings->setValue("bookmarkSidebar", !ui->bookmarksTree->isVisible());
+    /*if (ui->bookmarksTree->isVisible()) { 
+        ui->bookmarksTree->hide(); 
+        settings->setValue("bookmarkSidebar", false);
+    }
+    else { ui->bookmarksTree->setVisible(true); }*/
 }
 
 
@@ -213,7 +253,7 @@ void MainWindow::sidebarBookmarks() {
 // Go to the URL in the addressbar in the currently open tab. If no tab is open,
 // open a new tab.
 void MainWindow::gotoURL() {
-    QString url = addressBar->text();
+    QString url = ui->addressBar->lineEdit()->text();
     gotoURL(url);
 }
 
@@ -221,7 +261,7 @@ void MainWindow::gotoURL() {
 // --- GO TO URL ---
 // Go to the url provided in the string.
 void MainWindow::gotoURL(QString url) {
-    if (tabWidget->count() < 1) { 
+    if (ui->tabWidget->count() < 1) { 
         newTab(); // open new tab before proceding
     }
     
@@ -229,7 +269,7 @@ void MainWindow::gotoURL(QString url) {
     if (!tab) { qDebug("tab is null"); return; }
     
     wv = tab->findChild<WFWebView*>("webView");*/
-    wv = (WFWebView*) tabWidget->currentWidget();
+    wv = (WFWebView*) ui->tabWidget->currentWidget();
     if (!wv) { qDebug("wv is null"); return; }
     
     url.toLower();
@@ -243,7 +283,7 @@ void MainWindow::gotoURL(QString url) {
     
     if (!url.startsWith("http://") && !url.startsWith("https://")) {
         url.prepend("http://");
-        addressBar->setText(url);
+        ui->addressBar->lineEdit()->setText(url);
     }
     
     // Load the URL, change the UI elements to allow stopping this action.
@@ -262,10 +302,14 @@ void MainWindow::diagnoseLoad(bool ok) {
 																					// Don't return to the event loop.
     }
     else {
+        // obtain the sender which should be a QWebFrame pointer
+        QWebFrame* sender = (QWebFrame*) QObject::sender();
+        qDebug() << "Sender: " << sender;
+        
         //QWidget* tab = tabWidget->currentWidget
-        tabWidget->setTabText(tabWidget->currentIndex(), wv->title());
-        tabWidget->setTabIcon(tabWidget->currentIndex(), wv->icon());
-        addressBar->setText(wv->url().toString());
+        ui->tabWidget->setTabText(ui->tabWidget->currentIndex(), wv->title());
+        ui->tabWidget->setTabIcon(ui->tabWidget->currentIndex(), wv->icon());
+        ui->addressBar->lineEdit()->setText(wv->url().toString());
         QString title = wv->title();
         if (title.size() > 200) {
             title.resize(200);
@@ -273,10 +317,16 @@ void MainWindow::diagnoseLoad(bool ok) {
         
         setWindowTitle(title + " - WildFox");
         
+        // save page to history database        
+        if (sender != 0) {         
+            qDebug() << "Adding URL, meow~";
+            historydb->addHistoryEntry(sender->url().toString(), sender->title());
+        }
+        
         // check the page URL against the filters
         if (extFilters.size() < 1) { return; }
         
-        QWebPage* page = (QWebPage*) sender();
+        QWebPage* page = (QWebPage*) QObject::sender();
         if (page == 0) { return; }        
         QWebFrame* frame = page->mainFrame();
         if (frame == 0) { return; }
@@ -306,30 +356,6 @@ void MainWindow::diagnoseLoad(bool ok) {
 }
 
 
-// --- TAB TITLE CHANGED ---
-// Called by the WebView when the page title changes.
-void MainWindow::tabTitleChanged(QString title) {
-    // TODO: change main window title if current title as well
-    /*QString title = wv->title();
-    if (title.size() > 200) {
-        title.resize(200);
-    }
-    
-    setWindowTitle(title + " - WildFox");*/
-    // obtain the index of this tab via the pointer to the WebView calling.
-    QObject* w = sender();
-    WFWebView* webview = (WFWebView*) w;
-    if (w == 0) { qDebug("Unknown sender"); return; }
-    
-    int index = tabWidget->indexOf(webview);
-    if (index == -1) { qDebug("Tab index was -1"); return; }
-    tabWidget->setTabText(index, webview->title());
-    if (index == tabWidget->currentIndex()) {
-        setWindowTitle(webview->title() + " - WildFox");
-    }
-}
-
-
 // --- CHANGE TAB ---
 // Perform necessary changes here when the active tab has been changed.
 void MainWindow::changeTab(int index) {
@@ -339,9 +365,9 @@ void MainWindow::changeTab(int index) {
         return; 
     }
     
-    wv = (WFWebView*) tabWidget->currentWidget();
+    wv = (WFWebView*) ui->tabWidget->currentWidget();
     if (!wv) { return; }
-    addressBar->setText(wv->url().toString());
+    ui->addressBar->lineEdit()->setText(wv->url().toString());
     setWindowTitle(wv->title());
 }
 
@@ -374,16 +400,22 @@ void MainWindow::newTab() {
             this, SLOT(downloadContent(QNetworkRequest))); // context menu call
     connect(wv->page(), SIGNAL(linkHovered(QString,QString,QString)), 
             this, SLOT(linkHovered(QString,QString,QString)));
+    connect(wv, SIGNAL(iconChanged()), this, SLOT(tabIconChanged()));
+    connect(wv, SIGNAL(titleChanged(QString)), this, SLOT(tabTitleChanged(QString)));
+    
+    //wv->addAction(ui->actionReload);
     qDebug("Settings changed.");
-    int index = tabWidget->count();
+    int index = ui->tabWidget->count();
     ++index;
-    index = tabWidget->insertTab(index, wv, tr("New Tab"));
+    index = ui->tabWidget->insertTab(index, wv, tr("New Tab"));
     qDebug("Inserted tab.");
-    addressBar->setText("");
+    ui->addressBar->lineEdit()->setText("");
     //addressBar->setFocus(Qt::OtherFocusReason);
     gotoAddressBar();
-    tabWidget->setCurrentIndex(index);
+    ui->tabWidget->setCurrentIndex(index);
     setWindowTitle("WildFox");
+    
+    bookmarks->createBookmarksMenu();
 }
 
 
@@ -402,8 +434,8 @@ void MainWindow::newTab(WFWebView* &view) {
 // --- CLOSE TAB ---
 // Close the currently visible tab.
 void MainWindow::closeTab() {
-    if (tabWidget->count() < 1) { return; }
-    closeTab(tabWidget->currentIndex());
+    if (ui->tabWidget->count() < 1) { return; }
+    closeTab(ui->tabWidget->currentIndex());
 }
 
 
@@ -414,8 +446,8 @@ void MainWindow::closeTab(int index) {
     qDebug("Close tab called");
     if (wv == 0) { return; }
     qDebug("Closing tab...");
-    tabWidget->removeTab(index);
-    wv = (WFWebView*) tabWidget->currentWidget();
+    ui->tabWidget->removeTab(index);
+    wv = (WFWebView*) ui->tabWidget->currentWidget();
     if (wv != 0) {
         setWindowTitle(wv->title() + " - WildFox");
     }
@@ -496,7 +528,7 @@ void MainWindow::bookmarkAdd() {
 void MainWindow::loadBookmark() {
     QAction* action = (QAction*) sender();
     QString url = action->data().toString();
-    addressBar->setText(url);
+    ui->addressBar->lineEdit()->setText(url);
     gotoURL();
     //gotoURL(url);
 }
@@ -507,7 +539,7 @@ void MainWindow::loadBookmark() {
 void MainWindow::loadBookmark(QTreeWidgetItem *item, int column) {
     QList<QVariant> data = item->data(0, Qt::UserRole).toList();
     QString url = data[0].toString();
-    addressBar->setText(url);
+    ui->addressBar->lineEdit()->setText(url);
     gotoURL();
     //gotoURL(url);
 }
@@ -517,7 +549,11 @@ void MainWindow::loadBookmark(QTreeWidgetItem *item, int column) {
 // Download the content provided in a QNetworkReply in a separate thread.
 void MainWindow::downloadContent(QNetworkReply* reply) {
     // Ask for path to save to.
-    QString path = QFileDialog::getSaveFileName(this, tr("Save to..."), savedir.path());
+    QString url = reply->url().toString();
+    int pos = url.lastIndexOf("/");
+    QString filename = url.mid(pos);
+    if (filename.size() < 1) { filename = ""; }
+    QString path = QFileDialog::getSaveFileName(this, tr("Save to..."), savedir.path() + filename);
     if (path.isEmpty()) { reply->deleteLater(); return; }
     savedir.setPath(path);
     
@@ -525,6 +561,7 @@ void MainWindow::downloadContent(QNetworkReply* reply) {
     QProgressDialog* progress = new QProgressDialog(tr("Downloading %1").arg(reply->url().path()), tr("Cancel"), 0, reply->size());
     IOFile* file = new IOFile;
     file->setFileName(path);
+    file->setNetworkReply(reply);
     file->open(QIODevice::WriteOnly);
     connect(reply, SIGNAL(finished()), progress, SLOT(hide()));
     connect(reply, SIGNAL(finished()), progress, SLOT(deleteLater()));
@@ -534,12 +571,15 @@ void MainWindow::downloadContent(QNetworkReply* reply) {
     connect(reply, SIGNAL(finished()), reply, SLOT(deleteLater()));
     connect(file, SIGNAL(progress(int)), progress, SLOT(setValue(int)));
     connect(progress, SIGNAL(canceled()), file, SLOT(cancel()));
+    progress->show();
+    //progress->exec();
 }
 
 
 // --- DOWNLOAD CONTENT ---
 // Download the content requested by the provided QNetworkRequest in a separate
 // thread.
+// FIXME: delete NAM and such after use here or make it class members.
 void MainWindow::downloadContent(QNetworkRequest request) {
     QNetworkAccessManager* nam = new QNetworkAccessManager(this);
     QNetworkReply* reply = nam->get(request);
@@ -551,15 +591,15 @@ void MainWindow::downloadContent(QNetworkRequest request) {
 // Called when the mouse cursor hovers over a link in a webpage.
 void MainWindow::linkHovered(const QString &link, const QString &title, 
                              const QString &textContent) {
-    Ui_MainWindow::statusBar->showMessage(link);
+    ui->Ui_MainWindow::statusBar->showMessage(link);
 }
 
 
 // --- GO TO ADDRESS BAR ---
 // Upon triggering sets the focus on the address bar and selects any text in it.
 void MainWindow::gotoAddressBar() {
-    addressBar->setFocus(Qt::ShortcutFocusReason);
-    addressBar->selectAll();
+    ui->addressBar->lineEdit()->setFocus(Qt::ShortcutFocusReason);
+    ui->addressBar->lineEdit()->selectAll();
 }
 
 
@@ -568,10 +608,123 @@ void MainWindow::gotoAddressBar() {
 // TODO: Current default is Google, make this configurable.
 // Query is HTML-encoded to make it safe for transmission.
 void MainWindow::startSearch() {
-    QString query = searchBar->text();
+    QString query = ui->searchBar->text();
     if (query.isEmpty()) { return; }
     query.replace(" ", "+", Qt::CaseInsensitive);
     gotoURL("http://google.com/search?q=" + query);
+}
+
+
+// --- ADDRESS BAR TEXT CHANGED ---
+// Called when the text in the address bar's line edit changes. Show the combo
+// box's popup and fill it with 10 history items matching the text entered
+// so far, sorted by popularity.
+void MainWindow::addressBarTextChanged(const QString &text) {
+    if (text.size() < 3) { return; }
+    QString like = text;
+    objects.clear();
+    historydb->historyObjectsMatching(like, 12, objects);
+    //historyTable->clear();
+    ui->addressBar->clear();
+    
+    int objects_size = objects.size();
+    qDebug() << "objects: " << objects_size;
+    /*QTableWidgetItem* item = 0;*/
+    for (int i = 0; i < objects_size; ++i) {
+        //qDebug() << "i: " << i;
+        //qDebug() << "qcombobox count: " << ui->addressBar->count();
+        //qDebug() << "url: " << objects[i].url;
+        //qDebug() << "title: " << objects[i].title;
+        ui->addressBar->insertItem(i + 1, 
+                                   QIcon(QWebSettings::iconForUrl(QUrl(objects[i].url))), 
+                                   objects[i].title,
+                                   objects[i].url
+                                   );
+        /*item = new QTableWidgetItem();
+        item->setFlags(Qt::ItemIsEnabled);
+        item->setIcon(QIcon(QWebSettings::iconForUrl(QUrl(objects[i].url))));
+        item->setText(objects[i].url);
+        item->setData(Qt::UserRole, objects[i].url);
+        historyTable->setItem(i, 0, item);
+        
+        item = new QTableWidgetItem();
+        item->setFlags(Qt::ItemIsEnabled);
+        item->setText(objects[i].title);
+        item->setData(Qt::UserRole, objects[i].url);
+        historyTable->setItem(i, 1, item);*/
+    }
+    
+    ui->addressBar->showPopup();
+}
+
+
+// --- HISTORY ITEM TRIGGERED ---
+// Called when a history item has been triggered in the history popup of the 
+// address bar.
+// Loads the URL attached to the item.
+void MainWindow::historyItemTriggered(int index) {
+    ui->addressBar->hidePopup();
+    objects.clear();
+    qDebug() << "History item triggered.";
+    QString url = ui->addressBar->itemData(index).toString();
+    ui->addressBar->setEditText(url);
+    qDebug() << "Data: " << url;
+    gotoURL(url);
+}
+
+
+// --- TAB TITLE CHANGED ---
+// Called by the WebView when the page title changes.
+void MainWindow::tabTitleChanged(QString title) {
+    // TODO: change main window title if current title as well
+    /*QString title = wv->title();
+    if (title.size() > 200) {
+        title.resize(200);
+    }
+    
+    setWindowTitle(title + " - WildFox");*/
+    // obtain the index of this tab via the pointer to the WebView calling.
+    QObject* w = sender();
+    WFWebView* webview = (WFWebView*) w;
+    if (w == 0) { qDebug("Unknown sender"); return; }
+    
+    int index = ui->tabWidget->indexOf(webview);
+    if (index == -1) { qDebug("Tab index was -1"); return; }
+    ui->tabWidget->setTabText(index, webview->title());
+    if (index == ui->tabWidget->currentIndex()) {
+        setWindowTitle(webview->title() + " - WildFox");
+    }
+}
+
+
+// --- TAB ICON CHANGED ---
+// Called by the WebView when the page's icon changes.
+void MainWindow::tabIconChanged() {
+    // First obtain the sender and cast to webview.
+    WFWebView* webview = (WFWebView*) sender();
+    if (webview == 0) { qDebug() << "Unknown sender."; return; }
+    
+    int index = ui->tabWidget->indexOf(webview);
+    if (index == -1) { qDebug() << "Tab index was -1"; return; }
+    ui->tabWidget->setTabIcon(index, webview->icon());
+    
+    bookmarks->createBookmarksMenu();
+}
+
+
+// --- NEW HISTORY TAB ---
+// Open a new tab and the history dialog.
+void MainWindow::newHistoryTab() {
+    newTab();
+    openHistoryDialog();
+}
+
+
+// --- OPEN HISTORY DIALOG ---
+// Open the history dialogue.
+void MainWindow::openHistoryDialog() {
+    HistoryDialog dialog;
+    dialog.exec();
 }
 
 
@@ -580,6 +733,6 @@ void MainWindow::startSearch() {
 void MainWindow::closeEvent(QCloseEvent* event)  {
      settings->setValue("geometry", saveGeometry());
      settings->setValue("windowState", saveState());
-     settings->setValue("bookmarkSidebar", bookmarksTree->isVisible());
+     settings->setValue("bookmarkSidebar", ui->bookmarksTree->isVisible());
      QMainWindow::closeEvent(event);
  }

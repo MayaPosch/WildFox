@@ -24,7 +24,12 @@ SOURCES += main.cpp\
     chrome/chromejsinterface.cpp \
     chrome/chromebookmarks.cpp \
     wfwebpage.cpp \
-    wfwebhistoryinterface.cpp
+    wfwebhistoryinterface.cpp \
+    historydatabase.cpp \
+    addressbareventfilter.cpp \
+    addressbardelegate.cpp \
+    historydialog.cpp \
+    addressbarcompleter.cpp
 
 HEADERS  += mainwindow.h \
     wfwebview.h \
@@ -40,11 +45,17 @@ HEADERS  += mainwindow.h \
     chrome/chromejsinterface.h \
     chrome/chromebookmarks.h \
     wfwebpage.h \
-    wfwebhistoryinterface.h
+    wfwebhistoryinterface.h \
+    historydatabase.h \
+    addressbareventfilter.h \
+    addressbardelegate.h \
+    historydialog.h \
+    addressbarcompleter.h
 
 FORMS    += mainwindow.ui \
     optionsdialog.ui \
-    cookiemanagedialog.ui
+    cookiemanagedialog.ui \
+    historydialog.ui
 
 RESOURCES += \
     images.qrc

@@ -6,5 +6,6 @@
         <file>img/process-stop.png</file>
         <file>img/system-search.png</file>
         <file>img/view-refresh.png</file>
+        <file>img/document-open-recent.png</file>
     </qresource>
 </RCC>

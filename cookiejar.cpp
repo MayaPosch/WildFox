@@ -1,5 +1,5 @@
 /*
-  cookiejar.cpp - Cookie Jar implementation file of WildFox-Mimic.
+  cookiejar.cpp - Cookie Jar implementation file of WildFox.
   
   Revision 0
   
@@ -8,7 +8,7 @@
         - Implements third-party cookie blocking.
         
   Notes:
-        - Uses passive clearing of expired cookies for now.
+        - Uses semi-passive clearing of expired cookies for now.
         
   2012/02/04, Maya Posch
   (c) Nyanko.ws
@@ -143,10 +143,10 @@ QList<QNetworkCookie> CookieJar::cookiesForUrl(const QUrl &url) const {
         }
     }
     
-    qDebug() << "Printing cookie list.";
-    for (int i = 0; i < result.size(); ++i) {
+    //qDebug() << "Printing cookie list.";
+    /*for (int i = 0; i < result.size(); ++i) {
         qDebug() << "Domain: " + result[i].domain() << "name: " + result[i].name() << "value: " + result[i].value();
-    }
+    }*/
     
     return result;
 }
@@ -184,11 +184,11 @@ bool CookieJar::setCookiesFromUrl(const QList<QNetworkCookie> &cookieList, const
         }*/
         // FIXME: get 3rd-party blocking working...
         
-        qDebug() << "Cookie name: " << cookie.name();
+        //qDebug() << "Cookie name: " << cookie.name();
         /*bool isDeletion = !cookie.isSessionCookie() &&
                 cookie.expirationDate() < now;*/
         if (!cookie.isSessionCookie() && cookie.expirationDate() < now) {
-            qDebug() << "Expired: " << cookie.name() << cookie.value();
+            //qDebug() << "Expired: " << cookie.name() << cookie.value();
             continue; // skip this cookie as it's already expired.
         }
         
@@ -220,7 +220,7 @@ bool CookieJar::setCookiesFromUrl(const QList<QNetworkCookie> &cookieList, const
             // redundant; the "leading dot" rule has been relaxed anyway, see above
             // we remove the leading dot for this check
             if (isEffectiveTLD(domain.remove(0, 1))) {
-                qDebug() << "TLD, skipping: " << cookie.name() << cookie.value();
+                //qDebug() << "TLD, skipping: " << cookie.name() << cookie.value();
                 continue; // not accepted
             }
         }
@@ -233,17 +233,17 @@ bool CookieJar::setCookiesFromUrl(const QList<QNetworkCookie> &cookieList, const
         if (cit == cookiebuffer.end()) {
             if (!loadCookies(temp, baseDomain)) {
                 // nothing found, insert all provided cookies
-                qDebug() << "No cookies found in database for " << baseDomain;
+                //qDebug() << "No cookies found in database for " << baseDomain;
             }
             else {
                 cit = cookiebuffer.find(baseDomain);
-                qDebug() << "Found " << temp.size() << " cookies in database for domain " << baseDomain;
+                //qDebug() << "Found " << temp.size() << " cookies in database for domain " << baseDomain;
             }
         }
         
         if (cit != cookiebuffer.end()) {
             // we found the base domain in question, next search the cookies in it for a match
-            qDebug() << "Searching for cookies in cookie buffer matching " << cookie.name() << "...";
+            //qDebug() << "Searching for cookies in cookie buffer matching " << cookie.name() << "...";
             while (cit != cookiebuffer.end() && cit.key() == baseDomain) {
                 QNetworkCookie c = cit.value();
                 //qDebug() << "Cookie name: " << c.name();
@@ -251,7 +251,7 @@ bool CookieJar::setCookiesFromUrl(const QList<QNetworkCookie> &cookieList, const
                         c.domain() == cookie.domain() &&
                         c.path() == cookie.path()) {
                     // same cookie, overwrite it.
-                    qDebug() << "Found cookie match: " << c.name() << " - " << c.value();
+                    //qDebug() << "Found cookie match: " << c.name() << " - " << c.value();
                     cit.value() = cookie;
                     updated = true;
                     
@@ -287,8 +287,8 @@ bool CookieJar::setCookiesFromUrl(const QList<QNetworkCookie> &cookieList, const
         }
         
         if (!updated) {
-            qDebug() << "No existing cookie, inserting as new. Name: " << cookie.name();
-            qDebug() << "Session cookie: " << cookie.isSessionCookie();
+            //qDebug() << "No existing cookie, inserting as new. Name: " << cookie.name();
+            //qDebug() << "Session cookie: " << cookie.isSessionCookie();
             cookiebuffer.insert(baseDomain, cookie);
             if (!cookie.isSessionCookie()) {
                 uint tstamp = cookie.expirationDate().toTime_t();

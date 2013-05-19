@@ -16,18 +16,19 @@
 
 #include "wfwebhistoryinterface.h"
 
+#include <QDebug>
+
 
 // --- CONSTRUCTOR ---
-WFWebHistoryInterface::WFWebHistoryInterface(QObject *parent) :
-    QWebHistoryInterface(parent) {
-    // 
+WFWebHistoryInterface::WFWebHistoryInterface(/*QObject *parent*/) /*: QWebHistoryInterface(parent)*/ {
+    history = HistoryDatabase::getInstance(); // obtain singleton instance
 }
 
 
 // --- ADD HISTORY ENTRY ---
 // Called by WebKit to add another url to the list of visited pages.
 void WFWebHistoryInterface::addHistoryEntry(const QString &url) {
-    //
+    //history.addHistoryEntry(url);
 }
 
 
@@ -36,7 +37,6 @@ void WFWebHistoryInterface::addHistoryEntry(const QString &url) {
 // by the user already. Returns true if the url is part of the history of 
 // visited links; otherwise returns false.
 bool WFWebHistoryInterface::historyContains(const QString &url) const {
-    //
-    
-    return false;
+    //qDebug() <<  "WebHistoryInterface URL:" << url;
+    return history->historyContains(url);
 }

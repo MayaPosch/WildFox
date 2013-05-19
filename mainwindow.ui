@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>741</width>
-    <height>681</height>
+    <width>1170</width>
+    <height>673</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -75,6 +75,18 @@ padding-left: 0px;
 #reloadButton {
 height: 25px;
 width: 40px;
+}
+
+#historyButton {
+color: black;
+/*border-radius: 20;*/
+width: 40px;
+height: 25px;
+padding-right: 0px;
+margin-right: 0px;
+margin-left: 5px;
+margin-top: 5px;
+margin-bottom: 5px;
 }
 
 #addressBarGo {
@@ -164,15 +176,57 @@ height: 20px;
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="addressBar"/>
+       <widget class="QComboBox" name="addressBar">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>3</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="editable">
+         <bool>true</bool>
+        </property>
+        <property name="insertPolicy">
+         <enum>QComboBox::NoInsert</enum>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>32</width>
+          <height>32</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="historyButton">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="images.qrc">
+          <normaloff>:/wildfox/img/document-open-recent.png</normaloff>:/wildfox/img/document-open-recent.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>20</width>
+          <height>20</height>
+         </size>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QLineEdit" name="searchBar">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-          <horstretch>0</horstretch>
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>1</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
         </property>
         <property name="toolTip">
          <string>Search query</string>
@@ -264,8 +318,8 @@ height: 20px;
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>741</width>
-     <height>18</height>
+     <width>1170</width>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -314,6 +368,7 @@ height: 20px;
      <string>Hi&amp;story</string>
     </property>
     <addaction name="actionShow_all_history"/>
+    <addaction name="actionHistory_dialog"/>
     <addaction name="separator"/>
     <addaction name="actionRecently_closed_tabs"/>
     <addaction name="actionRecently_closed_Windows"/>
@@ -560,13 +615,28 @@ height: 20px;
     <string>Ctrl+B</string>
    </property>
   </action>
+  <action name="actionHistory_dialog">
+   <property name="text">
+    <string>History dialog</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+H</string>
+   </property>
+  </action>
+  <action name="actionOpen_History_Tab">
+   <property name="text">
+    <string>Open History Tab</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+G</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <tabstops>
   <tabstop>backButton</tabstop>
   <tabstop>forwardButton</tabstop>
   <tabstop>reloadButton</tabstop>
-  <tabstop>addressBar</tabstop>
   <tabstop>searchBar</tabstop>
   <tabstop>tabWidget</tabstop>
   <tabstop>bookmarksTree</tabstop>
