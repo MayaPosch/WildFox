@@ -23,6 +23,7 @@
 #include <QWebFrame>
 #include <QWebElement>
 #include <QList>
+#include <QWebHistory>
 
 #include "iofile.h"
 #include "optionsdialog.h"
@@ -329,6 +330,11 @@ void MainWindow::diagnoseLoad(bool ok) {
         
         setWindowTitle(title + " - WildFox");
         
+        if (wv != 0) {
+            ui->backButton->setEnabled(wv->history()->canGoBack());
+            ui->forwardButton->setEnabled(wv->history()->canGoForward());
+        }
+        
         // save page to history database        
         if (sender != 0) {         
             qDebug() << "Adding URL, meow~";
@@ -381,6 +387,8 @@ void MainWindow::changeTab(int index) {
     if (!wv) { return; }
     ui->addressBar->lineEdit()->setText(wv->url().toString());
     setWindowTitle(wv->title());
+    ui->backButton->setEnabled(wv->history()->canGoBack());
+    ui->forwardButton->setEnabled(wv->history()->canGoForward());
 }
 
 
@@ -426,6 +434,9 @@ void MainWindow::newTab() {
     gotoAddressBar();
     ui->tabWidget->setCurrentIndex(index);
     setWindowTitle("WildFox");
+    
+    ui->backButton->setEnabled(false);
+    ui->forwardButton->setEnabled(false);
     
     bookmarks->createBookmarksMenu();
 }
