@@ -9,6 +9,8 @@ QT       += core gui webkit network sql widgets webkit webkitwidgets uitools
 TARGET = WildFox
 TEMPLATE = app
 
+CONFIG += console
+
 #QT += uitools
 
 SOURCES += main.cpp\
